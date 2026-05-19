@@ -1,0 +1,2498 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SHB — Vận hành tín dụng</title>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --orange:#F26522;--dark-blue:#1A2B5F;--mid-blue:#2B4D9B;
+  --green:#27AE60;--red:#E53E3E;--yellow:#D97706;
+  --bg:#F4F6FA;--sidebar-bg:#fff;--card:#fff;
+  --border:#E8ECF4;--text:#1A1A2E;--muted:#888;--light:#F8F9FC;
+}
+body{font-family:'Be Vietnam Pro',sans-serif;background:var(--bg);color:var(--text);display:flex;min-height:100vh;font-size:13px;}
+
+/* ===== TOPBAR ===== */
+.topbar{
+  position:fixed;top:0;left:0;right:0;height:46px;
+  background:#fff;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 16px 0 0;z-index:200;
+}
+.topbar-left{display:flex;align-items:center;height:100%;}
+.topbar-logo{
+  width:200px;height:100%;display:flex;align-items:center;gap:8px;
+  padding:0 16px;border-right:1px solid var(--border);
+  background:#fff;flex-shrink:0;
+}
+.logo-s{background:var(--orange);color:#fff;font-weight:900;font-size:14px;width:26px;height:26px;border-radius:5px;display:flex;align-items:center;justify-content:center;}
+.logo-text{font-weight:800;font-size:15px;color:var(--dark-blue);}
+.logo-sub{font-size:10px;color:var(--muted);}
+.workspace-select{
+  display:flex;align-items:center;gap:6px;margin-left:12px;
+  padding:5px 10px;border-radius:6px;border:1px solid var(--border);
+  background:#fff;font-size:12px;font-weight:600;cursor:pointer;
+}
+.search-bar{
+  flex:1;max-width:420px;margin:0 16px;
+  display:flex;align-items:center;gap:8px;
+  background:var(--light);border:1px solid var(--border);
+  border-radius:7px;padding:6px 12px;
+}
+.search-bar input{border:none;background:transparent;outline:none;font-family:'Be Vietnam Pro',sans-serif;font-size:12px;color:var(--text);width:100%;}
+.topbar-right{display:flex;align-items:center;gap:12px;}
+.notif-btn{position:relative;width:32px;height:32px;border-radius:8px;background:var(--light);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;}
+.notif-dot{position:absolute;top:5px;right:5px;width:8px;height:8px;background:var(--orange);border-radius:50%;border:1.5px solid #fff;}
+.user-chip{display:flex;align-items:center;gap:8px;padding:4px 10px 4px 4px;border-radius:999px;border:1px solid var(--border);cursor:pointer;}
+.user-av{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--orange),#8B5CF6);color:#fff;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;}
+.user-name{font-size:12px;font-weight:700;}
+.user-role{font-size:10px;color:var(--muted);}
+
+/* ===== SIDEBAR ===== */
+.sidebar{
+  width:200px;flex-shrink:0;background:var(--sidebar-bg);
+  border-right:1px solid var(--border);
+  padding-top:46px;position:fixed;top:0;left:0;bottom:0;
+  overflow-y:auto;z-index:100;
+}
+.sidebar-section{padding:16px 10px 4px;}
+.sidebar-section-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--muted);padding:0 6px;margin-bottom:6px;}
+.nav-item{
+  display:flex;align-items:center;gap:8px;padding:7px 8px;
+  border-radius:7px;font-size:12px;font-weight:500;color:#555;
+  cursor:pointer;transition:background 0.15s,color 0.15s;text-decoration:none;
+}
+.nav-item:hover{background:var(--light);color:var(--text);}
+.nav-item.active{background:#FFF0E6;color:var(--orange);font-weight:700;}
+.nav-item svg{flex-shrink:0;opacity:0.7;}
+.nav-item.active svg{opacity:1;}
+
+/* ===== MAIN ===== */
+.main{margin-left:200px;padding-top:46px;flex:1;min-height:100vh;}
+.main-body{padding:20px 24px;}
+
+/* Page header */
+.page-header{margin-bottom:16px;}
+.page-title{font-size:20px;font-weight:900;letter-spacing:-0.5px;color:var(--text);margin-bottom:3px;}
+.page-desc{font-size:12.5px;color:var(--muted);}
+.live-badge{display:inline-flex;align-items:center;gap:5px;background:#E8F8EF;border:1px solid #A7F3D0;border-radius:999px;padding:3px 10px;font-size:11px;font-weight:600;color:var(--green);margin-top:6px;}
+.live-dot{width:6px;height:6px;background:var(--green);border-radius:50%;animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.5;transform:scale(1.3);}}
+
+/* KPI row */
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;}
+.kpi-card{background:var(--card);border:1.5px solid var(--border);border-radius:12px;padding:14px 16px;position:relative;overflow:hidden;}
+.kpi-card::after{content:'';position:absolute;top:0;right:0;width:60px;height:60px;border-radius:50%;opacity:0.06;}
+.kpi-card.blue::after{background:var(--mid-blue);}
+.kpi-card.orange::after{background:var(--orange);}
+.kpi-card.green::after{background:var(--green);}
+.kpi-card.yellow::after{background:var(--yellow);}
+.kpi-icon{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;margin-bottom:8px;}
+.kpi-card.blue .kpi-icon{background:#EFF6FF;}
+.kpi-card.orange .kpi-icon{background:#FFF0E6;}
+.kpi-card.green .kpi-icon{background:#E8F8EF;}
+.kpi-card.yellow .kpi-icon{background:#FEF9EC;}
+.kpi-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);margin-bottom:4px;}
+.kpi-value{font-size:28px;font-weight:900;letter-spacing:-1px;color:var(--text);line-height:1;}
+.kpi-sub{font-size:11px;color:var(--muted);margin-top:3px;}
+.kpi-card.orange .kpi-value{color:var(--orange);}
+.kpi-card.green .kpi-value{color:var(--green);}
+.kpi-card.yellow .kpi-value{color:var(--yellow);}
+
+/* two-col layout */
+.two-col{display:grid;grid-template-columns:1fr 320px;gap:12px;margin-bottom:12px;}
+.full-col{margin-bottom:12px;}
+
+/* card base */
+.dash-card{background:var(--card);border:1.5px solid var(--border);border-radius:12px;padding:18px 20px;}
+.card-title{font-size:13px;font-weight:800;color:var(--text);margin-bottom:12px;}
+
+/* ===== LINE CHART ===== */
+.chart-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.chart-legend{display:flex;gap:12px;}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:var(--muted);}
+.legend-dot{width:8px;height:8px;border-radius:50%;}
+.chart-canvas{position:relative;height:140px;overflow:hidden;}
+svg.line-chart{width:100%;height:140px;}
+
+/* ===== DONUT CHART ===== */
+.donut-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;}
+.donut-legend{display:flex;gap:14px;}
+.donut-legend-item{display:flex;align-items:center;gap:5px;font-size:11px;font-weight:600;}
+
+/* ===== BAR CHART ===== */
+.bar-chart-wrap{height:120px;display:flex;align-items:flex-end;gap:4px;padding:0 0 20px;position:relative;}
+.bar-col{display:flex;flex-direction:column;align-items:center;flex:1;gap:4px;}
+.bar{border-radius:4px 4px 0 0;transition:height 0.6s ease;min-width:24px;}
+.bar-label{font-size:10px;color:var(--muted);font-weight:500;white-space:nowrap;}
+.bar-chart-axis{position:absolute;bottom:20px;left:0;right:0;border-top:1px dashed #E8ECF4;}
+
+/* ===== HEATMAP ===== */
+.heatmap-wrap{overflow-x:auto;}
+.heatmap-grid{display:grid;grid-template-columns:70px repeat(7,1fr);gap:4px;min-width:640px;}
+.hm-col-header{font-size:10px;font-weight:600;color:var(--muted);text-align:center;padding:2px 0;}
+.hm-row-label{font-size:10px;font-weight:600;color:var(--muted);display:flex;align-items:center;padding-right:6px;}
+.hm-cell{height:40px;border-radius:5px;transition:transform 0.15s;cursor:pointer;}
+.hm-cell:hover{transform:scale(1.06);z-index:1;position:relative;}
+
+/* ===== ALERTS PANEL ===== */
+.alert-item{display:flex;align-items:flex-start;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);gap:10px;}
+.alert-item:last-child{border-bottom:none;}
+.alert-main{flex:1;}
+.alert-name{font-size:12.5px;font-weight:700;color:var(--text);margin-bottom:2px;}
+.alert-meta{font-size:11px;color:var(--muted);}
+.alert-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:5px;flex-shrink:0;white-space:nowrap;}
+.ab-low{background:#F0F2F8;color:#555;}
+.ab-mid{background:#FFF0E6;color:var(--orange);}
+.ab-high{background:#FEE2E2;color:#B91C1C;}
+.ab-critical{background:#7F1D1D;color:#FCA5A5;}
+.alerts-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;}
+.view-all{font-size:11px;font-weight:600;color:var(--orange);cursor:pointer;}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="topbar-logo">
+      <div class="logo-s">S</div>
+      <div>
+        <div class="logo-text">SHB</div>
+        <div class="logo-sub">Vận hành tín dụng</div>
+      </div>
+    </div>
+    <div class="workspace-select">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      Mọi workspace
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="search-bar">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" placeholder="Tìm hồ sơ, khách hàng, tài liệu…">
+    </div>
+  </div>
+  <div class="topbar-right">
+    <div class="notif-btn">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/></svg>
+      <div class="notif-dot"></div>
+    </div>
+    <div class="user-chip">
+      <div class="user-av">NA</div>
+      <div>
+        <div class="user-name">Nguyễn Minh Anh</div>
+        <div class="user-role">Administrator · Toàn hệ thống</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sidebar-section">
+    <div class="sidebar-section-label">Vận hành</div>
+    <a class="nav-item active" id="nav-tongquan" href="#" onclick="showTongQuan(event)">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      Tổng quan
+    </a>
+    <a class="nav-item" id="nav-hosovay" href="#" onclick="showHoSoVay(event)">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/></svg>
+      Hồ sơ vay
+    </a>
+    <a class="nav-item" href="#" onclick="return false;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      Khách hàng
+    </a>
+    <a class="nav-item" href="#" onclick="return false;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+      Dự án liên kết
+    </a>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-section-label">Phân tích rủi ro</div>
+    <a class="nav-item" href="#" onclick="return false;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+      Cảnh báo &amp; Heatmap
+    </a>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-section-label">Tự động hoá</div>
+    <a class="nav-item" href="#" onclick="return false;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      Quy trình tự động
+    </a>
+    <a class="nav-item" href="#" onclick="return false;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3m.08 4h.01"/></svg>
+      Hồ sơ cần thẩm định
+    </a>
+    <a class="nav-item" href="#" onclick="return false;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      Tác nhân AI
+    </a>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-section-label">Tri thức &amp; hệ thống</div>
+    <a class="nav-item" href="#" onclick="return false;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>
+      Kho tri thức
+    </a>
+    <a class="nav-item" href="#" onclick="return false;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2H3v16h5l3 3 3-3h7V2z"/></svg>
+      Kết nối hệ thống
+    </a>
+    <a class="nav-item" href="#" onclick="return false;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+      Nhật ký kiểm toán
+    </a>
+    <a class="nav-item" href="#" onclick="return false;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>
+      Đơn vị xử lý
+    </a>
+    <a class="nav-item" href="#" onclick="return false;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+      Phân quyền
+    </a>
+    <a class="nav-item" href="#" onclick="return false;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M4.93 4.93l1.41 1.41M12 2v2M12 20v2M20 12h2M2 12h2M17.66 17.66l-1.41-1.41M6.34 17.66l1.41-1.41"/></svg>
+      Cài đặt hệ thống
+    </a>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main" id="main-content">
+  <div class="main-body">
+
+    <!-- Page header -->
+    <div class="page-header">
+      <div class="page-title">Tổng quan vận hành</div>
+      <div class="page-desc">Chào Nguyễn Minh Anh — đây là bức tranh toàn cảnh trên 3 workspace.</div>
+      <div class="live-badge"><span class="live-dot"></span> Đang dùng dữ liệu hệ thống · 43 báo giờ</div>
+    </div>
+
+    <!-- KPI row -->
+    <div class="kpi-row">
+      <div class="kpi-card blue">
+        <div class="kpi-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#2B4D9B" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/></svg></div>
+        <div class="kpi-label">Hồ sơ tổng</div>
+        <div class="kpi-value">43</div>
+        <div class="kpi-sub">Live · DB</div>
+      </div>
+      <div class="kpi-card orange">
+        <div class="kpi-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#F26522" stroke-width="2"><circle cx="12" cy="12" r="9"/><polyline points="12,7 12,12 15,14"/></svg></div>
+        <div class="kpi-label">Đang xử lý</div>
+        <div class="kpi-value">28</div>
+        <div class="kpi-sub">SLA trung bình 22h</div>
+      </div>
+      <div class="kpi-card green">
+        <div class="kpi-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#27AE60" stroke-width="2"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>
+        <div class="kpi-label">Đã phê duyệt</div>
+        <div class="kpi-value">5</div>
+        <div class="kpi-sub">12% tỷ lệ duyệt</div>
+      </div>
+      <div class="kpi-card yellow">
+        <div class="kpi-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg></div>
+        <div class="kpi-label">HITL chờ xử lý</div>
+        <div class="kpi-value">19</div>
+        <div class="kpi-sub">Ưu tiên cao: 3</div>
+      </div>
+    </div>
+
+    <!-- Line chart + donut -->
+    <div class="two-col">
+      <div class="dash-card">
+        <div class="chart-header">
+          <div class="card-title" style="margin-bottom:0;">Khối lượng hồ sơ 14 ngày</div>
+          <div class="chart-legend">
+            <div class="legend-item"><div class="legend-dot" style="background:#F26522;"></div>received</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#27AE60;"></div>approved</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#E53E3E;opacity:0.5;"></div>rejected</div>
+          </div>
+        </div>
+        <div class="chart-canvas">
+          <svg class="line-chart" viewBox="0 0 700 140" preserveAspectRatio="none">
+            <!-- Grid lines -->
+            <line x1="0" y1="30" x2="700" y2="30" stroke="#F0F2F8" stroke-width="1"/>
+            <line x1="0" y1="60" x2="700" y2="60" stroke="#F0F2F8" stroke-width="1"/>
+            <line x1="0" y1="90" x2="700" y2="90" stroke="#F0F2F8" stroke-width="1"/>
+            <line x1="0" y1="120" x2="700" y2="120" stroke="#F0F2F8" stroke-width="1"/>
+            <!-- Area received -->
+            <defs>
+              <linearGradient id="gr1" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#F26522" stop-opacity="0.25"/><stop offset="100%" stop-color="#F26522" stop-opacity="0.02"/></linearGradient>
+              <linearGradient id="gr2" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#27AE60" stop-opacity="0.2"/><stop offset="100%" stop-color="#27AE60" stop-opacity="0.01"/></linearGradient>
+            </defs>
+            <path d="M0,90 C50,80 100,60 150,55 C200,50 250,65 300,58 C350,52 400,45 450,50 C500,55 550,48 600,42 C640,38 680,40 700,38 L700,135 L0,135 Z" fill="url(#gr1)"/>
+            <path d="M0,90 C50,80 100,60 150,55 C200,50 250,65 300,58 C350,52 400,45 450,50 C500,55 550,48 600,42 C640,38 680,40 700,38" fill="none" stroke="#F26522" stroke-width="2" stroke-linejoin="round"/>
+            <!-- Area approved -->
+            <path d="M0,110 C50,105 100,95 150,90 C200,86 250,92 300,88 C350,84 400,78 450,82 C500,86 550,80 600,75 C640,72 680,74 700,72 L700,135 L0,135 Z" fill="url(#gr2)"/>
+            <path d="M0,110 C50,105 100,95 150,90 C200,86 250,92 300,88 C350,84 400,78 450,82 C500,86 550,80 600,75 C640,72 680,74 700,72" fill="none" stroke="#27AE60" stroke-width="1.5" stroke-linejoin="round"/>
+            <!-- Rejected dashed -->
+            <path d="M0,130 C100,128 200,126 300,127 C400,128 500,125 600,124 C650,123 680,124 700,123" fill="none" stroke="#E53E3E" stroke-width="1" stroke-dasharray="4,3" opacity="0.5"/>
+            <!-- X axis labels -->
+            <text x="0" y="138" font-size="9" fill="#aaa" font-family="Be Vietnam Pro">6/5</text>
+            <text x="90" y="138" font-size="9" fill="#aaa" font-family="Be Vietnam Pro">7/5</text>
+            <text x="180" y="138" font-size="9" fill="#aaa" font-family="Be Vietnam Pro">8/5</text>
+            <text x="270" y="138" font-size="9" fill="#aaa" font-family="Be Vietnam Pro">9/5</text>
+            <text x="358" y="138" font-size="9" fill="#aaa" font-family="Be Vietnam Pro">10/5</text>
+            <text x="446" y="138" font-size="9" fill="#aaa" font-family="Be Vietnam Pro">12/5</text>
+            <text x="534" y="138" font-size="9" fill="#aaa" font-family="Be Vietnam Pro">15/5</text>
+            <text x="650" y="138" font-size="9" fill="#aaa" font-family="Be Vietnam Pro">18/5</text>
+            <!-- Y axis -->
+            <text x="2" y="28" font-size="9" fill="#ccc" font-family="Be Vietnam Pro">60</text>
+            <text x="2" y="58" font-size="9" fill="#ccc" font-family="Be Vietnam Pro">45</text>
+            <text x="2" y="88" font-size="9" fill="#ccc" font-family="Be Vietnam Pro">30</text>
+            <text x="2" y="118" font-size="9" fill="#ccc" font-family="Be Vietnam Pro">15</text>
+          </svg>
+        </div>
+      </div>
+
+      <div class="dash-card">
+        <div class="card-title">Phân bổ Cá nhân vs Doanh nghiệp</div>
+        <div class="donut-wrap">
+          <svg width="150" height="150" viewBox="0 0 150 150">
+            <circle cx="75" cy="75" r="55" fill="none" stroke="#F0F2F8" stroke-width="22"/>
+            <!-- Orange arc: ~72% -->
+            <circle cx="75" cy="75" r="55" fill="none" stroke="#F26522" stroke-width="22"
+              stroke-dasharray="249 97" stroke-dashoffset="69" stroke-linecap="round"/>
+            <!-- Blue arc: ~28% -->
+            <circle cx="75" cy="75" r="55" fill="none" stroke="#2B4D9B" stroke-width="22"
+              stroke-dasharray="97 249" stroke-dashoffset="-180" stroke-linecap="round"/>
+            <text x="75" y="70" text-anchor="middle" font-size="18" font-weight="900" fill="#1A1A2E" font-family="Be Vietnam Pro">72%</text>
+            <text x="75" y="84" text-anchor="middle" font-size="9" fill="#888" font-family="Be Vietnam Pro">Cá nhân</text>
+          </svg>
+          <div class="donut-legend">
+            <div class="donut-legend-item"><div class="legend-dot" style="background:#F26522;width:10px;height:10px;border-radius:2px;"></div>Cá nhân</div>
+            <div class="donut-legend-item"><div class="legend-dot" style="background:#2B4D9B;width:10px;height:10px;border-radius:2px;"></div>Doanh nghiệp</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Status bar chart + full width -->
+    <div class="full-col">
+      <div class="dash-card">
+        <div class="card-title">Phều trạng thái hồ sơ</div>
+        <div style="position:relative;">
+          <div class="bar-chart-wrap" id="bar-chart">
+            <!-- bars rendered by JS -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Heatmap + Alerts -->
+    <div class="two-col" style="grid-template-columns:1fr 320px;">
+      <div class="dash-card">
+        <div class="card-title">Heatmap rủi ro theo workspace</div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:10px;text-align:right;">7 ngày gần nhất</div>
+        <div class="heatmap-wrap">
+          <div class="heatmap-grid" id="heatmap-grid">
+            <!-- JS rendered -->
+          </div>
+        </div>
+      </div>
+
+      <div class="dash-card">
+        <div class="alerts-header">
+          <div class="card-title" style="margin-bottom:0;">🔔 Cảnh báo nổi bật</div>
+          <div class="view-all">Xem tất cả</div>
+        </div>
+        <div style="margin-top:10px;">
+          <div class="alert-item">
+            <div class="alert-main">
+              <div class="alert-name">Tập trung dư nợ vào nhóm khách 1 ngành</div>
+              <div class="alert-meta">credit · 08:00:00 1/5/2026</div>
+            </div>
+            <span class="alert-badge ab-low">Thấp</span>
+          </div>
+          <div class="alert-item">
+            <div class="alert-main">
+              <div class="alert-name">Tăng đột biến hồ sơ bị OCR lỗi</div>
+              <div class="alert-meta">legal · 09:00:00 2/5/2026</div>
+            </div>
+            <span class="alert-badge ab-mid">Trung bình</span>
+          </div>
+          <div class="alert-item">
+            <div class="alert-main">
+              <div class="alert-name">Phát hiện CMND nghi giả mạo</div>
+              <div class="alert-meta">fraud · 10:00:00 3/5/2026</div>
+            </div>
+            <span class="alert-badge ab-high">Cao</span>
+          </div>
+          <div class="alert-item">
+            <div class="alert-main">
+              <div class="alert-name">Dự án thiếu giấy phép xây dựng</div>
+              <div class="alert-meta">operational · 11:00:00 3/5/2026</div>
+            </div>
+            <span class="alert-badge ab-critical">Nghiêm trọng</span>
+          </div>
+          <div class="alert-item">
+            <div class="alert-main">
+              <div class="alert-name">SLA xử lý vượt ngưỡng tại CN Hà Nội</div>
+              <div class="alert-meta">credit · 12:00:00 3/5/2026</div>
+            </div>
+            <span class="alert-badge ab-low">Thấp</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// Bar chart
+const barData = [
+  { label:'Submitted', val:2, color:'#2B4D9B' },
+  { label:'AI Review', val:5, color:'#2B4D9B' },
+  { label:'Need Info', val:2, color:'#2B4D9B' },
+  { label:'HITL', val:3, color:'#2B4D9B' },
+  { label:'Credit', val:3, color:'#2B4D9B' },
+  { label:'Approved', val:4, color:'#2B4D9B' },
+  { label:'Rejected', val:4, color:'#2B4D9B' },
+];
+const maxBar = Math.max(...barData.map(d=>d.val));
+const barWrap = document.getElementById('bar-chart');
+barData.forEach(d => {
+  const col = document.createElement('div');
+  col.className = 'bar-col';
+  const pct = (d.val / (maxBar + 1)) * 100;
+  col.innerHTML = `
+    <div class="bar" style="height:${pct}%;background:${d.color};width:100%;"></div>
+    <div class="bar-label">${d.label}</div>
+  `;
+  barWrap.appendChild(col);
+});
+
+// Heatmap
+const workspaces = ['HO-RISK','HN-AUTO','HCM-RETAIL'];
+const days = ['T2','T3','T4','T5','T6','T7','T8'];
+const heatColors = [
+  '#FDDEC8','#F8B494','#F28C6A','#E86A44','#D94F2A','#C03415','#9B1C06'
+];
+const grid = document.getElementById('heatmap-grid');
+// header row
+const emptyCell = document.createElement('div');
+grid.appendChild(emptyCell);
+days.forEach(d => {
+  const h = document.createElement('div');
+  h.className = 'hm-col-header';
+  h.textContent = d;
+  grid.appendChild(h);
+});
+// data rows
+const heatData = [
+  [1,2,4,5,4,6,6],
+  [3,3,2,4,5,3,5],
+  [2,4,5,6,3,4,5],
+];
+workspaces.forEach((ws, ri) => {
+  const label = document.createElement('div');
+  label.className = 'hm-row-label';
+  label.textContent = ws;
+  grid.appendChild(label);
+  heatData[ri].forEach(v => {
+    const cell = document.createElement('div');
+    cell.className = 'hm-cell';
+    cell.style.background = heatColors[v];
+    cell.title = `Rủi ro: ${v}/6`;
+    grid.appendChild(cell);
+  });
+});
+
+// Animate bars on load
+setTimeout(() => {
+  document.querySelectorAll('.bar').forEach(b => {
+    const h = b.style.height;
+    b.style.height = '0%';
+    b.style.transition = 'height 0.7s cubic-bezier(.4,0,.2,1)';
+    setTimeout(() => b.style.height = h, 100);
+  });
+}, 200);
+</script>
+<!-- ===== HỒ SƠ VAY SCREEN ===== -->
+<div class="main" id="screen-hosovay" style="display:none;">
+<style>
+/* Table styles */
+.hsv-topbar-local{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:6px;
+}
+.hsv-title{font-size:20px;font-weight:900;letter-spacing:-0.5px;color:var(--text);}
+.hsv-desc{font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.5;}
+.btn-tao-hs{
+  display:flex;align-items:center;gap:6px;
+  padding:9px 16px;border-radius:8px;background:var(--orange);
+  color:#fff;border:none;font-family:'Be Vietnam Pro',sans-serif;
+  font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;
+}
+.hsv-kpi-row{display:grid;grid-template-columns:repeat(3,1fr) 1.4fr;gap:10px;margin-bottom:14px;}
+.hsv-kpi{background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:12px 16px;}
+.hsv-kpi-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--muted);margin-bottom:4px;}
+.hsv-kpi-val{font-size:24px;font-weight:900;letter-spacing:-0.5px;color:var(--text);}
+.hsv-kpi-val.orange{color:var(--orange);}
+.hsv-kpi-val.green{color:var(--green);}
+.hsv-kpi-sub{font-size:11px;color:var(--muted);margin-top:2px;}
+.hsv-kpi-sub.source{color:var(--mid-blue);font-weight:600;}
+
+/* Search + filter bar */
+.hsv-filter-bar{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.hsv-search{
+  flex:1;max-width:360px;display:flex;align-items:center;gap:8px;
+  background:#fff;border:1.5px solid var(--border);border-radius:8px;
+  padding:7px 12px;
+}
+.hsv-search input{border:none;background:transparent;outline:none;font-family:'Be Vietnam Pro',sans-serif;font-size:12px;color:var(--text);width:100%;}
+.hsv-filter-right{display:flex;align-items:center;gap:6px;margin-left:auto;}
+.filter-chip{
+  display:flex;align-items:center;gap:5px;padding:5px 12px;
+  border-radius:6px;border:1.5px solid var(--border);background:#fff;
+  font-size:12px;font-weight:600;color:var(--text);cursor:pointer;
+}
+.filter-chip.active-cn{border-color:var(--orange);background:#FFF0E6;color:var(--orange);}
+.filter-chip.active-dn{border-color:var(--mid-blue);background:#EFF6FF;color:var(--mid-blue);}
+.filter-count{background:var(--orange);color:#fff;border-radius:4px;padding:1px 6px;font-size:10px;font-weight:700;}
+
+/* Tab filters */
+.hsv-tabs{display:flex;align-items:center;gap:6px;margin-bottom:10px;}
+.hsv-tab{
+  padding:5px 14px;border-radius:999px;font-size:12px;font-weight:600;
+  border:1.5px solid var(--border);background:#fff;color:var(--text);cursor:pointer;
+  transition:all 0.15s;
+}
+.hsv-tab.active{background:var(--orange);color:#fff;border-color:var(--orange);}
+.hsv-tab.active-blue{background:var(--mid-blue);color:#fff;border-color:var(--mid-blue);}
+
+/* Table */
+.hsv-table-wrap{background:#fff;border:1.5px solid var(--border);border-radius:12px;overflow:hidden;}
+table.hsv-table{width:100%;border-collapse:collapse;font-size:12px;}
+table.hsv-table thead tr{background:#F8F9FC;border-bottom:1.5px solid var(--border);}
+table.hsv-table th{
+  padding:9px 12px;text-align:left;font-size:10px;font-weight:700;
+  text-transform:uppercase;letter-spacing:0.4px;color:var(--muted);
+  white-space:nowrap;
+}
+table.hsv-table tbody tr{border-bottom:1px solid #F0F2F8;transition:background 0.1s;cursor:pointer;}
+table.hsv-table tbody tr:last-child{border-bottom:none;}
+table.hsv-table tbody tr:hover{background:#FAFBFF;}
+table.hsv-table td{padding:10px 12px;vertical-align:middle;}
+.td-ma{font-size:11px;font-weight:700;color:var(--orange);}
+.td-kh{font-size:12px;font-weight:700;color:var(--text);}
+.td-sp{font-size:11px;color:#555;}
+.td-muted{font-size:11px;color:var(--muted);}
+.td-dash{color:#ccc;}
+
+/* Status badges */
+.st-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:5px;font-size:10px;font-weight:700;white-space:nowrap;}
+.st-nhap{background:#EFF6FF;color:#2B4D9B;}
+.st-ai{background:#FFF0E6;color:var(--orange);}
+.st-cho-tham{background:#FEF3C7;color:#92400E;}
+.st-phe-duyet{background:#E8F8EF;color:var(--green);}
+.st-tu-choi{background:#FEE2E2;color:#B91C1C;}
+.st-cho-cdt{background:#F3E8FF;color:#7C3AED;}
+.st-tra-cdc{background:#E0F2FE;color:#0369A1;}
+
+/* Reason / luồng */
+.reason-ok{font-size:11px;color:var(--green);font-weight:600;}
+.reason-warn{font-size:11px;color:var(--orange);font-weight:600;}
+.reason-risk{font-size:11px;color:#B91C1C;font-weight:600;}
+.reason-muted{font-size:11px;color:var(--muted);}
+</style>
+
+<div class="main-body">
+  <!-- Header row -->
+  <div class="hsv-topbar-local">
+    <div>
+      <div class="hsv-title">Hồ Sơ Vay</div>
+    </div>
+    <button class="btn-tao-hs">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      + Tạo hồ sơ thủ công
+    </button>
+  </div>
+  <div class="hsv-desc">30/30 hồ sơ · theo dõi kiểm tra ban đầu, tỷ lệ trả nợ, giấy tờ bắt buộc và luồng xử lý. Chưa có dữ liệu hệ thống, đang hiển thị dữ liệu mẫu nội bộ.</div>
+
+  <!-- KPI cards -->
+  <div class="hsv-kpi-row">
+    <div class="hsv-kpi">
+      <div class="hsv-kpi-label">Cần thẩm định</div>
+      <div class="hsv-kpi-val orange">7</div>
+    </div>
+    <div class="hsv-kpi">
+      <div class="hsv-kpi-label">CDT cần xác nhận</div>
+      <div class="hsv-kpi-val orange">1</div>
+    </div>
+    <div class="hsv-kpi">
+      <div class="hsv-kpi-label">Thiếu hồ sơ bắt buộc</div>
+      <div class="hsv-kpi-val green">0</div>
+    </div>
+    <div class="hsv-kpi">
+      <div class="hsv-kpi-label">Nguồn dữ liệu</div>
+      <div class="hsv-kpi-sub source">Dữ liệu mẫu nội bộ</div>
+    </div>
+  </div>
+
+  <!-- Search + filter -->
+  <div class="hsv-filter-bar">
+    <div class="hsv-search">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" placeholder="Tìm theo mã hồ sơ, khách hàng, tỷ do xử lý…">
+    </div>
+    <div class="hsv-filter-right">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+      <span class="filter-chip active-cn" style="background:var(--orange);color:#fff;border-color:var(--orange);">
+        <span class="filter-count">196 cái</span>
+      </span>
+      <span class="filter-chip">Cá nhân</span>
+      <span class="filter-chip">Doanh nghiệp</span>
+    </div>
+  </div>
+
+  <!-- Tab row -->
+  <div class="hsv-tabs">
+    <span class="hsv-tab active">Đơn vị xử lý</span>
+    <span class="hsv-tab active-blue">Chi nhánh nguồn</span>
+    <span class="hsv-tab">Mọi đơn vị</span>
+  </div>
+
+  <!-- Table -->
+  <div class="hsv-table-wrap">
+    <table class="hsv-table">
+      <thead>
+        <tr>
+          <th>Mã</th>
+          <th>Khách hàng</th>
+          <th>Chi nhánh → Đơn vị xử lý</th>
+          <th>Sản phẩm</th>
+          <th>Kiểm tra ban đầu</th>
+          <th>Tỷ lệ trả nợ</th>
+          <th>Giấy tờ</th>
+          <th>Luồng xử lý</th>
+          <th>Lý do chỉnh</th>
+          <th>Trạng thái</th>
+          <th style="text-align:right;">Số tiền</th>
+        </tr>
+      </thead>
+      <tbody id="hsv-tbody">
+        <!-- Row 1: Trần Minh Đức - chờ thẩm định, AI flag rủi ro -->
+        <tr onclick="showTMDDetail(event)">
+          <td><span class="td-ma" style="cursor:pointer;text-decoration:underline;text-decoration-color:rgba(242,101,34,0.4);">APP–2026–D2001</span></td>
+          <td>
+            <div class="td-kh">Trần Minh Đức</div>
+            <div class="td-muted">45 tuổi · Chủ hộ KD</div>
+          </td>
+          <td><span class="td-muted">HKD Minh Đức Cơ Khí — Bình Tân, HCM</span></td>
+          <td><span class="td-sp">Vay sản xuất kinh doanh</span></td>
+          <td><span style="font-size:11px;font-weight:600;color:var(--green);">Phù hợp</span></td>
+          <td><span style="font-size:11px;color:#555;">19% · phù hợp</span></td>
+          <td><span style="font-size:11px;color:var(--green);font-weight:600;">3/3 hợp lệ</span></td>
+          <td><span class="reason-risk">Cần chuyên viên kiểm tra</span></td>
+          <td><span style="font-size:11px;color:#B91C1C;">AI flag doanh thu biến động T2–T3</span></td>
+          <td><span class="st-badge st-cho-tham">● Chờ thẩm định</span></td>
+          <td style="text-align:right;font-weight:700;font-size:12px;">1.200.000.000 đ</td>
+        </tr>
+        <!-- Row 2: Lê Quốc Cường - đã phê duyệt -->
+        <tr onclick="showLQCDetail(event)" style="cursor:pointer;">
+          <td><span class="td-ma" style="cursor:pointer;text-decoration:underline;text-decoration-color:rgba(39,174,96,0.4);">APP–2026–1003</span></td>
+          <td>
+            <div class="td-kh">Lê Quốc Cường</div>
+            <div class="td-muted">32 tuổi · Kỹ sư phần mềm</div>
+          </td>
+          <td><span class="td-muted">FPT Software — Quận 7, HCM</span></td>
+          <td><span class="td-sp">Vay mua nhà dự án liên kết</span></td>
+          <td><span style="font-size:11px;font-weight:600;color:var(--green);">Phù hợp</span></td>
+          <td><span style="font-size:11px;color:#555;">20% · ghi nhận</span></td>
+          <td><span style="font-size:11px;color:var(--green);font-weight:600;">4/4 hợp lệ</span></td>
+          <td><span class="reason-ok">Có thể tự động xử lý</span></td>
+          <td><span style="font-size:11px;color:var(--green);">Tỷ lệ trả nợ phù hợp</span></td>
+          <td><span class="st-badge st-phe-duyet">● Phê duyệt</span></td>
+          <td style="text-align:right;font-weight:700;font-size:12px;">2.500.000.000 đ</td>
+        </tr>
+        <!-- Rows 3–10: mẫu -->
+        <tr>
+          <td><span class="td-ma">APP–2026–1880</span></td>
+          <td><div class="td-kh">Nguyễn Văn An</div><div class="td-muted">28 tuổi · Nhân viên</div></td>
+          <td><span class="td-muted td-dash">—</span></td>
+          <td><span class="td-sp">Vay xe ô tô SHB Easy</span></td>
+          <td><span style="font-size:11px;color:var(--orange);font-weight:600;">Cần rà soát</span></td>
+          <td><span class="td-muted">&lt;70%</span></td>
+          <td><span class="td-muted td-dash">—</span></td>
+          <td><span class="reason-ok">Có thể tự động xử lý</span></td>
+          <td><span class="reason-muted">Tỷ lệ trả nợ phù hợp</span></td>
+          <td><span class="st-badge st-nhap">● Nhập</span></td>
+          <td style="text-align:right;font-weight:700;">350.000.000 đ</td>
+        </tr>
+        <tr>
+          <td><span class="td-ma">APP–2026–1881</span></td>
+          <td><div class="td-kh">Trần Thị Bích</div><div class="td-muted">35 tuổi · Giáo viên</div></td>
+          <td><span class="td-muted td-dash">—</span></td>
+          <td><span class="td-sp">Vay xe ô tô SHB Family</span></td>
+          <td><span style="font-size:11px;color:var(--orange);font-weight:600;">Cần rà soát</span></td>
+          <td><span class="td-muted">&lt;70%</span></td>
+          <td><span class="td-muted td-dash">—</span></td>
+          <td><span class="reason-ok">Có thể tự động xử lý</span></td>
+          <td><span class="reason-muted">Tỷ lệ trả nợ phù hợp</span></td>
+          <td><span class="st-badge st-phe-duyet">● Phê duyệt</span></td>
+          <td style="text-align:right;font-weight:700;">430.000.000 đ</td>
+        </tr>
+        <tr>
+          <td><span class="td-ma">APP–2026–1882</span></td>
+          <td><div class="td-kh">Phạm Mỹ Duyên</div><div class="td-muted">30 tuổi · Kiến trúc sư</div></td>
+          <td><span class="td-muted td-dash">—</span></td>
+          <td><span class="td-sp">Vay mua nhà dự án Vinhomes Ocean Park 3</span></td>
+          <td><span style="font-size:11px;font-weight:600;color:var(--green);">Phù hợp</span></td>
+          <td><span class="td-muted">&lt;70%</span></td>
+          <td><span class="td-muted td-dash">—</span></td>
+          <td><span class="reason-warn">Cần thẩm định thủ công</span></td>
+          <td><span style="font-size:11px;color:var(--muted);">Cần xác nhận đối tác/CDT</span></td>
+          <td><span class="st-badge st-cho-tham">● Chờ thẩm định</span></td>
+          <td style="text-align:right;font-weight:700;">2.500.000.000 đ</td>
+        </tr>
+        <tr>
+          <td><span class="td-ma">APP–2026–1883</span></td>
+          <td><div class="td-kh">Hoàng Anh Em</div><div class="td-muted">42 tuổi · Doanh nhân</div></td>
+          <td><span class="td-muted td-dash">—</span></td>
+          <td><span class="td-sp">Vay xe ô tô SHB Family</span></td>
+          <td><span style="font-size:11px;color:var(--orange);font-weight:600;">Cần rà soát</span></td>
+          <td><span class="td-muted">&lt;70%</span></td>
+          <td><span class="td-muted td-dash">—</span></td>
+          <td><span class="reason-warn">Cần thẩm định thủ công</span></td>
+          <td><span class="reason-risk">Rủi ro cao</span></td>
+          <td><span class="st-badge st-cho-tham">● Chờ thẩm định</span></td>
+          <td style="text-align:right;font-weight:700;">670.000.000 đ</td>
+        </tr>
+        <tr>
+          <td><span class="td-ma">APP–2026–1884</span></td>
+          <td><div class="td-kh">Vũ Tiến Phát</div><div class="td-muted">29 tuổi · Lập trình viên</div></td>
+          <td><span class="td-muted td-dash">—</span></td>
+          <td><span class="td-sp">Vay xe ô tô SHB Pro</span></td>
+          <td><span style="font-size:11px;color:var(--orange);font-weight:600;">Cần rà soát</span></td>
+          <td><span class="td-muted">&lt;70%</span></td>
+          <td><span class="td-muted td-dash">—</span></td>
+          <td><span class="reason-warn">Cần thẩm định thủ công</span></td>
+          <td><span class="reason-muted">Tỷ lệ trả nợ phù hợp</span></td>
+          <td><span class="st-badge st-tra-cdc">● Trả CDC</span></td>
+          <td style="text-align:right;font-weight:700;">750.000.000 đ</td>
+        </tr>
+        <tr>
+          <td><span class="td-ma">APP–2026–1885</span></td>
+          <td><div class="td-kh">Đỗ Thu Giang</div><div class="td-muted">38 tuổi · Kế toán</div></td>
+          <td><span class="td-muted td-dash">—</span></td>
+          <td><span class="td-sp">Vay xe ô tô SHB Easy</span></td>
+          <td><span style="font-size:11px;color:var(--orange);font-weight:600;">Cần rà soát</span></td>
+          <td><span class="td-muted">&lt;70%</span></td>
+          <td><span class="td-muted td-dash">—</span></td>
+          <td><span class="reason-ok">Có thể tự động xử lý</span></td>
+          <td><span class="reason-muted">Tỷ lệ trả nợ phù hợp</span></td>
+          <td><span class="st-badge st-phe-duyet">● Phê duyệt</span></td>
+          <td style="text-align:right;font-weight:700;">380.000.000 đ</td>
+        </tr>
+        <tr>
+          <td><span class="td-ma">APP–2026–1886</span></td>
+          <td><div class="td-kh">Bùi Hữu Hùng</div><div class="td-muted">50 tuổi · Giám đốc</div></td>
+          <td><span class="td-muted td-dash">—</span></td>
+          <td><span class="td-sp">Vay xe ô tô SHB Family</span></td>
+          <td><span style="font-size:11px;color:var(--orange);font-weight:600;">Cần rà soát</span></td>
+          <td><span class="td-muted">&lt;70%</span></td>
+          <td><span class="td-muted td-dash">—</span></td>
+          <td><span style="font-size:11px;color:#B91C1C;font-weight:600;">Đề xuất từ chối</span></td>
+          <td><span class="reason-muted">Tỷ lệ trả nợ phù hợp</span></td>
+          <td><span class="st-badge st-tu-choi">● Từ chối</span></td>
+          <td style="text-align:right;font-weight:700;">430.000.000 đ</td>
+        </tr>
+        <tr>
+          <td><span class="td-ma">APP–2026–1887</span></td>
+          <td><div class="td-kh">Ngô Khánh Linh</div><div class="td-muted">26 tuổi · Nhân viên</div></td>
+          <td><span class="td-muted td-dash">—</span></td>
+          <td><span class="td-sp">Vay xe ô tô SHB Pro</span></td>
+          <td><span style="font-size:11px;color:var(--orange);font-weight:600;">Cần rà soát</span></td>
+          <td><span class="td-muted">&lt;70%</span></td>
+          <td><span class="td-muted td-dash">—</span></td>
+          <td><span class="reason-ai">Đang xử lý AI</span></td>
+          <td><span class="reason-muted">Tỷ lệ trả nợ phù hợp</span></td>
+          <td><span class="st-badge st-ai">● AI đang xử lý</span></td>
+          <td style="text-align:right;font-weight:700;">290.000.000 đ</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div style="padding:12px 16px;font-size:11px;color:var(--muted);background:#fff;border:1.5px solid var(--border);border-top:none;border-radius:0 0 12px 12px;">
+    Hiển thị 10 / 30 hồ sơ · Trang 1/3
+  </div>
+</div>
+</div>
+
+<script>
+function showHoSoVay(e) {
+  if(e) e.preventDefault();
+  document.getElementById('main-content').style.display = 'none';
+  document.getElementById('screen-hosovay').style.display = 'block';
+  document.getElementById('screen-tmd-detail').style.display = 'none';
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  document.getElementById('nav-hosovay').classList.add('active');
+}
+function showTongQuan(e) {
+  if(e) e.preventDefault();
+  document.getElementById('main-content').style.display = 'block';
+  document.getElementById('screen-hosovay').style.display = 'none';
+  document.getElementById('screen-tmd-detail').style.display = 'none';
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  document.getElementById('nav-tongquan').classList.add('active');
+}
+function showTMDDetail(e) {
+  if(e) e.preventDefault();
+  document.getElementById('main-content').style.display = 'none';
+  document.getElementById('screen-hosovay').style.display = 'none';
+  document.getElementById('screen-tmd-detail').style.display = 'block';
+  if(document.getElementById('screen-lqc-detail')) document.getElementById('screen-lqc-detail').style.display = 'none';
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  document.getElementById('nav-hosovay').classList.add('active');
+}
+function showLQCDetail(e) {
+  if(e) e.preventDefault();
+  document.getElementById('main-content').style.display = 'none';
+  document.getElementById('screen-hosovay').style.display = 'none';
+  document.getElementById('screen-tmd-detail').style.display = 'none';
+  document.getElementById('screen-lqc-detail').style.display = 'block';
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  document.getElementById('nav-hosovay').classList.add('active');
+}
+</script>
+
+<!-- ===== TMD DETAIL SCREEN ===== -->
+<div class="main" id="screen-tmd-detail" style="display:none;">
+<style>
+.detail-body{padding:20px 32px 60px;max-width:1300px;}
+.breadcrumb{font-size:12px;color:var(--muted);margin-bottom:14px;display:flex;align-items:center;gap:6px;cursor:pointer;}
+.breadcrumb:hover span{color:var(--orange);}
+.detail-header-row{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:4px;}
+.detail-name{font-size:22px;font-weight:900;letter-spacing:-0.5px;color:var(--text);display:flex;align-items:center;gap:10px;}
+.detail-app-id{font-size:13px;font-weight:600;color:var(--muted);}
+.detail-sub{font-size:12px;color:var(--muted);margin-bottom:16px;}
+.detail-header-actions{display:flex;align-items:center;gap:8px;}
+.btn-ai-active{display:flex;align-items:center;gap:5px;padding:7px 14px;border-radius:7px;background:#FFF0E6;border:1.5px solid var(--orange);color:var(--orange);font-family:'Be Vietnam Pro',sans-serif;font-size:12px;font-weight:700;cursor:pointer;}
+.btn-yc{padding:7px 14px;border-radius:7px;background:#fff;border:1.5px solid var(--border);color:var(--text);font-family:'Be Vietnam Pro',sans-serif;font-size:12px;font-weight:600;cursor:pointer;}
+.btn-cv{padding:7px 14px;border-radius:7px;background:var(--mid-blue);border:none;color:#fff;font-family:'Be Vietnam Pro',sans-serif;font-size:12px;font-weight:700;cursor:pointer;}
+
+/* KPI row */
+.detail-kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;}
+.detail-kpi{background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:12px 16px;}
+.dkpi-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--muted);margin-bottom:4px;}
+.dkpi-val{font-size:22px;font-weight:900;letter-spacing:-0.5px;}
+.dkpi-val.red{color:#B91C1C;}
+.dkpi-val.green{color:var(--green);}
+.dkpi-val.orange{color:var(--orange);}
+
+/* AI verdict box */
+.ai-verdict-box{
+  border-radius:14px;padding:20px 24px;margin-bottom:16px;
+  position:relative;overflow:hidden;
+  background:linear-gradient(135deg,#FFFBEB 0%,#FEF3C7 40%,#FDE68A 100%);
+  border:1.5px solid #FCD34D;
+}
+.ai-verdict-box::before{
+  content:'';position:absolute;top:-40px;right:-40px;
+  width:180px;height:180px;
+  background:radial-gradient(circle,rgba(251,191,36,0.25),transparent 70%);
+  pointer-events:none;
+}
+.avb-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.avb-title{font-size:14px;font-weight:800;color:#78350F;display:flex;align-items:center;gap:7px;}
+.avb-icon{width:26px;height:26px;border-radius:7px;background:#FEF3C7;border:1.5px solid #FCD34D;display:flex;align-items:center;justify-content:center;}
+.avb-result{font-size:12px;font-weight:700;color:var(--orange);}
+
+.avb-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:14px;}
+.avb-cell{background:rgba(255,255,255,0.7);border-radius:8px;padding:10px 12px;border:1px solid rgba(253,211,74,0.4);}
+.avb-cell-label{font-size:10px;font-weight:700;color:#92400E;text-transform:uppercase;letter-spacing:0.3px;margin-bottom:4px;}
+.avb-cell-val{font-size:12px;font-weight:700;color:var(--text);line-height:1.4;}
+.avb-cell-val.warn{color:#B45309;}
+
+.avb-bottom{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.avb-rules{background:rgba(255,255,255,0.65);border-radius:10px;padding:14px 16px;border:1px solid rgba(253,211,74,0.4);}
+.avb-rules-title{font-size:12px;font-weight:800;color:#78350F;margin-bottom:8px;}
+.avb-rule-item{display:flex;align-items:flex-start;gap:6px;font-size:12px;color:#555;margin-bottom:5px;line-height:1.5;}
+.avb-rule-dot{width:5px;height:5px;border-radius:50%;background:var(--orange);flex-shrink:0;margin-top:6px;}
+.avb-action{background:rgba(255,255,255,0.65);border-radius:10px;padding:14px 16px;border:1px solid rgba(253,211,74,0.4);}
+.avb-action-title{font-size:12px;font-weight:800;color:#78350F;margin-bottom:6px;}
+.avb-action-text{font-size:12px;color:#555;line-height:1.6;}
+
+/* Tab bar */
+.detail-tabs{display:flex;align-items:center;border-bottom:1.5px solid var(--border);margin-bottom:16px;gap:0;}
+.dtab{padding:10px 16px;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1.5px;white-space:nowrap;transition:color 0.15s;}
+.dtab:hover{color:var(--text);}
+.dtab.active{color:var(--orange);border-bottom-color:var(--orange);font-weight:700;}
+.dtab-count{background:var(--light);color:var(--muted);border-radius:4px;padding:1px 6px;font-size:10px;font-weight:700;margin-left:4px;}
+
+/* Two col detail */
+.detail-two-col{display:grid;grid-template-columns:1fr 320px;gap:16px;}
+.detail-card{background:#fff;border:1.5px solid var(--border);border-radius:12px;padding:20px 22px;}
+.detail-card-title{font-size:13px;font-weight:800;color:var(--text);margin-bottom:14px;}
+.info-table{width:100%;border-collapse:collapse;}
+.info-table tr td{padding:8px 0;border-bottom:1px solid #F0F2F8;font-size:12.5px;vertical-align:top;}
+.info-table tr:last-child td{border-bottom:none;}
+.info-table td:first-child{color:var(--muted);font-weight:500;width:140px;padding-right:12px;}
+.info-table td:last-child{color:var(--text);font-weight:600;}
+.note-bar{background:#F8F9FC;border-left:3px solid #D1D5DB;border-radius:0 6px 6px 0;padding:8px 12px;font-size:11.5px;color:#555;margin-top:10px;line-height:1.5;}
+
+/* Workflow panel */
+.wf-item{display:flex;align-items:flex-start;gap:10px;padding:10px 0;}
+.wf-line-wrap{display:flex;flex-direction:column;align-items:center;flex-shrink:0;}
+.wf-circle{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.wf-circle.done{background:#E8F8EF;border:1.5px solid var(--green);}
+.wf-circle.inprog{background:#FFF0E6;border:1.5px solid var(--orange);animation:waitpulse 2s infinite;}
+.wf-circle.wait{background:#F0F2F8;border:1.5px solid #ccc;}
+.wf-vert{width:2px;flex:1;background:#E8ECF4;min-height:12px;margin:2px auto;}
+.wf-name{font-size:12px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:6px;margin-bottom:2px;}
+.wf-desc{font-size:11px;color:var(--muted);}
+.wf-link{font-size:10px;color:var(--mid-blue);font-weight:600;background:#EFF6FF;padding:1px 7px;border-radius:4px;}
+.badge-done{background:#E8F8EF;color:var(--green);border-radius:4px;padding:1px 7px;font-size:10px;font-weight:700;}
+.badge-inprog{background:#FFF0E6;color:var(--orange);border-radius:4px;padding:1px 7px;font-size:10px;font-weight:700;}
+.badge-wait{background:#F0F2F8;color:#888;border-radius:4px;padding:1px 7px;font-size:10px;font-weight:700;}
+@keyframes waitpulse{0%,100%{opacity:1;}50%{opacity:0.5;}}
+</style>
+
+<div class="detail-body">
+
+  <!-- Breadcrumb -->
+  <div class="breadcrumb" onclick="showHoSoVay(event)">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+    <span>Hồ sơ vay</span>
+  </div>
+
+  <!-- Header -->
+  <div class="detail-header-row">
+    <div>
+      <div class="detail-name">
+        Trần Minh Đức
+        <span class="detail-app-id">APP–2026–D2001</span>
+      </div>
+      <div class="detail-sub">Vay sản xuất kinh doanh · 1.200.000.000 đ · 60 tháng · HKD Minh Đức Cơ Khí</div>
+    </div>
+    <div class="detail-header-actions">
+      <button class="btn-ai-active">
+        <span style="width:7px;height:7px;background:var(--orange);border-radius:50%;animation:waitpulse 1.5s infinite;display:inline-block;"></span>
+        AI đang xử lý
+      </button>
+      <button class="btn-yc">Yêu cầu bổ sung</button>
+      <button class="btn-cv">Chuyển chuyên viên</button>
+    </div>
+  </div>
+
+  <!-- KPI row -->
+  <div class="detail-kpi-row">
+    <div class="detail-kpi">
+      <div class="dkpi-label">Điểm rủi ro</div>
+      <div class="dkpi-val red">67/100</div>
+    </div>
+    <div class="detail-kpi">
+      <div class="dkpi-label">Cách xử lý</div>
+      <div class="dkpi-val orange" style="font-size:14px;margin-top:4px;">Cần chuyên viên kiểm tra</div>
+    </div>
+    <div class="detail-kpi">
+      <div class="dkpi-label">Giấy tờ bắt buộc hợp lệ</div>
+      <div class="dkpi-val green">3/3</div>
+    </div>
+    <div class="detail-kpi">
+      <div class="dkpi-label">Lý do chỉnh</div>
+      <div style="font-size:12px;font-weight:700;color:#B91C1C;margin-top:4px;">AI flag doanh thu biến động T2–T3</div>
+    </div>
+  </div>
+
+  <!-- AI Verdict Box (yellow gradient) -->
+  <div class="ai-verdict-box">
+    <div class="avb-top">
+      <div class="avb-title">
+        <div class="avb-icon">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        </div>
+        Phán quyết AI · Giải thích chính sách
+      </div>
+      <div class="avb-result">⚠ Cần chuyên viên thẩm định thêm</div>
+    </div>
+    <div style="font-size:12px;color:#78350F;margin-bottom:12px;opacity:0.8;">Giải thích quyết định theo luồng chính sách tín dụng và checklist hồ sơ cho officer/risk/legal.</div>
+
+    <!-- 5-cell status grid -->
+    <div class="avb-grid">
+      <div class="avb-cell">
+        <div class="avb-cell-label">Trạng thái</div>
+        <div class="avb-cell-val warn">AI đang đọc giấy tờ, đối chiếu thông tin và chuẩn bị khuyến nghị cho chuyên viên.</div>
+      </div>
+      <div class="avb-cell">
+        <div class="avb-cell-label">Kiểm tra ban đầu</div>
+        <div class="avb-cell-val warn">Cần xem lại</div>
+      </div>
+      <div class="avb-cell">
+        <div class="avb-cell-label">Thu nhập</div>
+        <div class="avb-cell-val warn">Cần xác minh</div>
+      </div>
+      <div class="avb-cell">
+        <div class="avb-cell-label">Khả năng trả nợ</div>
+        <div class="avb-cell-val warn">19% · biến động · cần xem</div>
+      </div>
+      <div class="avb-cell">
+        <div class="avb-cell-label">Checklist</div>
+        <div class="avb-cell-val" style="color:var(--green);">3/3 giấy tờ bắt buộc · đạt</div>
+      </div>
+    </div>
+
+    <!-- Rules + action -->
+    <div class="avb-bottom">
+      <div class="avb-rules">
+        <div class="avb-rules-title">Quy tắc khớp</div>
+        <div class="avb-rule-item"><div class="avb-rule-dot"></div>Kiểm tra ban đầu: định danh, cư trú, CIC và blacklist không chặn.</div>
+        <div class="avb-rule-item"><div class="avb-rule-dot"></div>Thu nhập lương được công nhận để tính hạn mức.</div>
+        <div class="avb-rule-item"><div class="avb-rule-dot" style="background:#B91C1C;"></div>AI phát hiện doanh thu T2–T3 giảm 28% — yếu tố rủi ro cao.</div>
+        <div class="avb-rule-item"><div class="avb-rule-dot" style="background:#B91C1C;"></div>Cần bổ sung sao kê lương 12 tháng ở giai đoạn thẩm định.</div>
+        <div class="avb-rule-item"><div class="avb-rule-dot" style="background:#B91C1C;"></div>Chuyên viên tín dụng đang phỏng vấn bổ sung kế hoạch dòng tiền.</div>
+      </div>
+      <div class="avb-action">
+        <div class="avb-action-title">Hành động đề xuất</div>
+        <div class="avb-action-text">Theo dõi kết quả trích xuất; nếu độ tin cậy thấp thì chuyển officer kiểm tra thủ công trước khi quyết định. Cần xác nhận thêm về kế hoạch dòng tiền kinh doanh và nguồn trả nợ thay thế khi doanh thu biến động.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="detail-tabs">
+    <div class="dtab active" onclick="switchTab(this,'tab-tongquan')">Tổng quan</div>
+    <div class="dtab" onclick="switchTab(this,'tab-workflow')">Workflow</div>
+    <div class="dtab" onclick="switchTab(this,'tab-tailieus')">Tài liệu <span class="dtab-count">3</span></div>
+    <div class="dtab" onclick="switchTab(this,'tab-hosogoc')">Hồ sơ gốc</div>
+    <div class="dtab" onclick="switchTab(this,'tab-lesson')">Lesson learned</div>
+    <div class="dtab" onclick="switchTab(this,'tab-aiphan')">AI Phân tích</div>
+    <div class="dtab" onclick="switchTab(this,'tab-traodoi')">Trao đổi</div>
+    <div class="dtab" onclick="switchTab(this,'tab-timeline')">Timeline <span class="dtab-count">4</span></div>
+  </div>
+
+  <!-- Tab: Tổng quan -->
+  <div id="tab-tongquan">
+  <!-- Two-column body -->
+  <div class="detail-two-col">
+
+    <!-- Left: loan info -->
+    <div class="detail-card">
+      <div class="detail-card-title">Thông tin hồ sơ</div>
+      <table class="info-table">
+        <tr><td>Khách hàng</td><td>Trần Minh Đức <span style="color:var(--muted);font-weight:400;margin-left:8px;">CIF</span></td><td style="color:var(--muted);font-weight:400;padding-right:12px;">CUS-D2001</td></tr>
+        <tr><td>Sản phẩm</td><td>Vay sản xuất kinh doanh</td><td style="color:var(--muted);">Loại vay</td><td>Vay SXKD</td></tr>
+        <tr><td>Số tiền</td><td style="font-weight:800;color:var(--text);">1.200.000.000 đ</td><td style="color:var(--muted);">Kỳ hạn</td><td>60 tháng</td></tr>
+        <tr><td>Tài sản đảm bảo</td><td>Nhà xưởng 320m² — Bình Tân</td><td style="color:var(--muted);">Officer</td><td style="color:var(--muted);">Đang chờ phân</td></tr>
+        <tr><td>Tạo lúc</td><td>07:00 17/05/2026</td><td style="color:var(--muted);">Cập nhật</td><td>17:35 18/05/2026</td></tr>
+      </table>
+      <div class="note-bar">Ghi chú: Doanh thu T2–T3 giảm 28% so với T1. AI mở case review và chuyển chuyên viên tín dụng đánh giá thêm về kế hoạch dòng tiền.</div>
+    </div>
+
+    <!-- Right: workflow -->
+    <div class="detail-card">
+      <div class="detail-card-title" style="display:flex;align-items:center;gap:6px;">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#F26522" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Trạng thái workflow
+      </div>
+      <!-- Steps -->
+      <div class="wf-item">
+        <div class="wf-line-wrap">
+          <div class="wf-circle done"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="#27AE60" stroke-width="2.5"><polyline points="2,6 5,9 10,3"/></svg></div>
+          <div class="wf-vert"></div>
+        </div>
+        <div>
+          <div class="wf-name">Khách tạo hồ sơ <span class="badge-done">Hoàn thành</span> <span class="wf-link">⇢ Customer Wizard · Bước 1</span></div>
+          <div class="wf-desc">eKYC + chọn sản phẩm.</div>
+        </div>
+      </div>
+      <div class="wf-item">
+        <div class="wf-line-wrap">
+          <div class="wf-circle done"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="#27AE60" stroke-width="2.5"><polyline points="2,6 5,9 10,3"/></svg></div>
+          <div class="wf-vert"></div>
+        </div>
+        <div>
+          <div class="wf-name">Thông tin cá nhân <span class="badge-done">Hoàn thành</span> <span class="wf-link">⇢ Wizard · personal</span></div>
+          <div class="wf-desc">CCCD, địa chỉ, liên hệ.</div>
+        </div>
+      </div>
+      <div class="wf-item">
+        <div class="wf-line-wrap">
+          <div class="wf-circle done"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="#27AE60" stroke-width="2.5"><polyline points="2,6 5,9 10,3"/></svg></div>
+          <div class="wf-vert"></div>
+        </div>
+        <div>
+          <div class="wf-name">Thu nhập &amp; nghề nghiệp <span class="badge-done">Hoàn thành</span> <span class="wf-link">⇢ Wizard · income</span></div>
+          <div class="wf-desc">ĐKKD, sao kê + hợp đồng lao động.</div>
+        </div>
+      </div>
+      <div class="wf-item">
+        <div class="wf-line-wrap">
+          <div class="wf-circle done"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="#27AE60" stroke-width="2.5"><polyline points="2,6 5,9 10,3"/></svg></div>
+          <div class="wf-vert"></div>
+        </div>
+        <div>
+          <div class="wf-name">Chi tiết khoản vay <span class="badge-done">Hoàn thành</span> <span class="wf-link">⇢ Wizard · loan</span></div>
+          <div class="wf-desc">Số tiền, kỳ hạn, tài sản đảm bảo.</div>
+        </div>
+      </div>
+      <div class="wf-item">
+        <div class="wf-line-wrap">
+          <div class="wf-circle inprog"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#F26522" stroke-width="2.5"><circle cx="12" cy="12" r="9"/><polyline points="12,7 12,12 15,14"/></svg></div>
+          <div class="wf-vert"></div>
+        </div>
+        <div>
+          <div class="wf-name">Tài liệu hồ sơ <span class="badge-inprog">Đang xử lý</span></div>
+          <div class="wf-desc">3/3 tài liệu hợp lệ · AI đang phân tích dòng tiền.</div>
+        </div>
+      </div>
+      <div class="wf-item">
+        <div class="wf-line-wrap">
+          <div class="wf-circle wait"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="2"><circle cx="12" cy="12" r="9"/></svg></div>
+        </div>
+        <div>
+          <div class="wf-name" style="color:#aaa;">Yêu cầu KH bổ sung tài liệu <span class="badge-wait">Chờ</span></div>
+          <div class="wf-desc" style="color:#bbb;">Chờ kết quả thẩm định chuyên viên.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  </div><!-- /tab-tongquan -->
+
+  <!-- Tab: Workflow -->
+  <div id="tab-workflow" style="display:none;">
+  <style>
+  .wf-full-box{background:#fff;border:1.5px solid var(--border);border-radius:12px;padding:22px 26px;}
+  .wf-full-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;}
+  .wf-full-title{font-size:14px;font-weight:800;color:var(--text);display:flex;align-items:center;gap:7px;}
+  .wf-full-sync{font-size:11px;color:var(--muted);}
+  .wf-full-item{display:flex;align-items:flex-start;gap:14px;padding:10px 0;}
+  .wffi-line{display:flex;flex-direction:column;align-items:center;flex-shrink:0;width:26px;}
+  .wffi-circle{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .wffi-circle.done{background:#E8F8EF;border:1.5px solid var(--green);}
+  .wffi-circle.inprog{background:#FFF0E6;border:1.5px solid var(--orange);animation:waitpulse 2s infinite;}
+  .wffi-circle.skip{background:#EFF6FF;border:1.5px solid #93C5FD;}
+  .wffi-circle.wait{background:#F0F2F8;border:1px solid #D1D5DB;}
+  .wffi-circle.branch{background:#F5F3FF;border:1.5px solid #8B5CF6;}
+  .wffi-vert{width:2px;flex:1;background:#E8ECF4;min-height:14px;margin:2px auto;}
+  .wffi-body{flex:1;padding-bottom:4px;}
+  .wffi-name{font-size:13px;font-weight:700;color:var(--text);display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:3px;}
+  .wffi-name.muted{color:#aaa;}
+  .wffi-desc{font-size:12px;color:var(--muted);line-height:1.5;}
+  .badge-skip{background:#EFF6FF;color:#2563EB;border-radius:4px;padding:1px 7px;font-size:10px;font-weight:700;}
+  .badge-branch{background:#F5F3FF;color:#7C3AED;border-radius:4px;padding:1px 7px;font-size:10px;font-weight:700;}
+  .badge-renhanh{background:#FEF3C7;color:#D97706;border-radius:4px;padding:1px 7px;font-size:10px;font-weight:700;}
+  </style>
+
+  <div class="wf-full-box">
+    <div class="wf-full-header">
+      <div class="wf-full-title">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#F26522" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Workflow xử lý hồ sơ
+      </div>
+      <div class="wf-full-sync">Đồng bộ với form đăng ký bên Customer App</div>
+    </div>
+
+    <!-- 1. Khách tạo hồ sơ -->
+    <div class="wf-full-item">
+      <div class="wffi-line">
+        <div class="wffi-circle done"><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="#27AE60" stroke-width="2.5"><polyline points="2,6 5,9 10,3"/></svg></div>
+        <div class="wffi-vert"></div>
+      </div>
+      <div class="wffi-body">
+        <div class="wffi-name">Khách tạo hồ sơ <span class="badge-done">Hoàn thành</span> <span class="wf-link">⇢ Customer Wizard · Bước 1</span></div>
+        <div class="wffi-desc">eKYC + chọn sản phẩm.</div>
+      </div>
+    </div>
+
+    <!-- 2. Thông tin cá nhân -->
+    <div class="wf-full-item">
+      <div class="wffi-line">
+        <div class="wffi-circle done"><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="#27AE60" stroke-width="2.5"><polyline points="2,6 5,9 10,3"/></svg></div>
+        <div class="wffi-vert"></div>
+      </div>
+      <div class="wffi-body">
+        <div class="wffi-name">Thông tin cá nhân <span class="badge-done">Hoàn thành</span> <span class="wf-link">⇢ Wizard · personal</span></div>
+        <div class="wffi-desc">CCCD, địa chỉ, liên hệ.</div>
+      </div>
+    </div>
+
+    <!-- 3. Thu nhập & nghề nghiệp -->
+    <div class="wf-full-item">
+      <div class="wffi-line">
+        <div class="wffi-circle done"><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="#27AE60" stroke-width="2.5"><polyline points="2,6 5,9 10,3"/></svg></div>
+        <div class="wffi-vert"></div>
+      </div>
+      <div class="wffi-body">
+        <div class="wffi-name">Thu nhập &amp; nghề nghiệp <span class="badge-done">Hoàn thành</span> <span class="wf-link">⇢ Wizard · income</span></div>
+        <div class="wffi-desc">ĐKKD, sao kê 12 tháng + hợp đồng lao động.</div>
+      </div>
+    </div>
+
+    <!-- 4. Chi tiết khoản vay -->
+    <div class="wf-full-item">
+      <div class="wffi-line">
+        <div class="wffi-circle done"><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="#27AE60" stroke-width="2.5"><polyline points="2,6 5,9 10,3"/></svg></div>
+        <div class="wffi-vert"></div>
+      </div>
+      <div class="wffi-body">
+        <div class="wffi-name">Chi tiết khoản vay <span class="badge-done">Hoàn thành</span> <span class="wf-link">⇢ Wizard · loan</span></div>
+        <div class="wffi-desc">Số tiền 1.2 tỷ, kỳ hạn 60 tháng, tài sản đảm bảo: nhà xưởng 320m².</div>
+      </div>
+    </div>
+
+    <!-- 5. Tài liệu hồ sơ -->
+    <div class="wf-full-item">
+      <div class="wffi-line">
+        <div class="wffi-circle inprog"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#F26522" stroke-width="2.5"><circle cx="12" cy="12" r="9"/><polyline points="12,7 12,12 15,14"/></svg></div>
+        <div class="wffi-vert"></div>
+      </div>
+      <div class="wffi-body">
+        <div class="wffi-name">Tài tài liệu hồ sơ <span class="badge-inprog">Đang xử lý</span></div>
+        <div class="wffi-desc">3/3 tài liệu hợp lệ. AI đang phân tích dòng tiền kinh doanh.</div>
+      </div>
+    </div>
+
+    <!-- 6. Yêu cầu KH bổ sung -->
+    <div class="wf-full-item">
+      <div class="wffi-line">
+        <div class="wffi-circle skip"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="2"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg></div>
+        <div class="wffi-vert"></div>
+      </div>
+      <div class="wffi-body">
+        <div class="wffi-name">Yêu cầu KH bổ sung tài liệu <span class="badge-wait">Chờ</span> <span class="wf-link">⇢ Branch · thiếu hồ sơ</span></div>
+        <div class="wffi-desc">Bỏ qua khi đủ hồ sơ.</div>
+      </div>
+    </div>
+
+    <!-- 7. AI trích xuất + đối chiếu (OCR) -->
+    <div class="wf-full-item">
+      <div class="wffi-line">
+        <div class="wffi-circle inprog"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#F26522" stroke-width="2.5"><circle cx="12" cy="12" r="9"/><polyline points="12,7 12,12 15,14"/></svg></div>
+        <div class="wffi-vert"></div>
+      </div>
+      <div class="wffi-body">
+        <div class="wffi-name">AI trích xuất + đối chiếu (OCR) <span class="badge-inprog">Đang xử lý</span></div>
+        <div class="wffi-desc">OCR + LLM map sang trường chuẩn. Đang phân tích biến động doanh thu T2–T3.</div>
+      </div>
+    </div>
+
+    <!-- 8. Tra cứu CIC -->
+    <div class="wf-full-item">
+      <div class="wffi-line">
+        <div class="wffi-circle wait"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg></div>
+        <div class="wffi-vert"></div>
+      </div>
+      <div class="wffi-body">
+        <div class="wffi-name wffi-name muted">Tra cứu CIC <span class="badge-wait">Chờ</span></div>
+        <div class="wffi-desc">Connector CIC · cache 5 ngày · nhóm 1-5. CIC hiện tại: nhóm 1, điểm bureau 680/850.</div>
+      </div>
+    </div>
+
+    <!-- 9. Chấm điểm rủi ro -->
+    <div class="wf-full-item">
+      <div class="wffi-line">
+        <div class="wffi-circle wait"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg></div>
+        <div class="wffi-vert"></div>
+      </div>
+      <div class="wffi-body">
+        <div class="wffi-name wffi-name muted">Chấm điểm rủi ro <span class="badge-wait">Chờ</span></div>
+        <div class="wffi-desc">Score = CIC×30 + DTI×25 + LTV×20 + Bureau×15 + Stability×10 → <strong style="color:#B91C1C;">67/100</strong> (AI flag doanh thu biến động).</div>
+      </div>
+    </div>
+
+    <!-- 10. Phân loại quyết định -->
+    <div class="wf-full-item">
+      <div class="wffi-line">
+        <div class="wffi-circle branch"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></div>
+        <div class="wffi-vert"></div>
+      </div>
+      <div class="wffi-body">
+        <div class="wffi-name">Phân loại quyết định <span class="badge-renhanh">Rẽ nhánh</span></div>
+        <div class="wffi-desc">Risk 67 → <strong style="color:#D97706;">HITL</strong> · Doanh thu biến động + CIC nhóm 1 — cần officer thẩm định thêm trước quyết định.</div>
+      </div>
+    </div>
+
+    <!-- 11. HITL Officer thẩm định -->
+    <div class="wf-full-item">
+      <div class="wffi-line">
+        <div class="wffi-circle wait"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg></div>
+        <div class="wffi-vert"></div>
+      </div>
+      <div class="wffi-body">
+        <div class="wffi-name wffi-name muted">HITL Officer thẩm định <span class="badge-wait">Chờ</span> <span class="wf-link">⇢ Branch · 40 ≤ risk ≤ 70</span></div>
+        <div class="wffi-desc">Officer xem xét kế hoạch dòng tiền, xác minh doanh thu + quyết định.</div>
+      </div>
+    </div>
+
+    <!-- 12. Quyết định cuối -->
+    <div class="wf-full-item">
+      <div class="wffi-line">
+        <div class="wffi-circle wait"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg></div>
+        <div class="wffi-vert"></div>
+      </div>
+      <div class="wffi-body">
+        <div class="wffi-name wffi-name muted">Quyết định cuối <span class="badge-wait">Chờ</span></div>
+        <div class="wffi-desc">Đang chờ.</div>
+      </div>
+    </div>
+
+    <!-- 13. Giải ngân -->
+    <div class="wf-full-item">
+      <div class="wffi-line">
+        <div class="wffi-circle wait"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg></div>
+      </div>
+      <div class="wffi-body">
+        <div class="wffi-name wffi-name muted">Giải ngân <span class="badge-wait">Chờ</span></div>
+        <div class="wffi-desc">Chờ phê duyệt và ký hợp đồng.</div>
+      </div>
+    </div>
+
+  </div>
+  </div><!-- /tab-workflow -->
+
+  <!-- Placeholder tabs -->
+  <div id="tab-tailieus" style="display:none;"><div class="detail-card" style="padding:40px;text-align:center;color:var(--muted);font-size:13px;">Nội dung tab Tài liệu — 3 giấy tờ đã hợp lệ</div></div>
+  <div id="tab-hosogoc" style="display:none;"><div class="detail-card" style="padding:40px;text-align:center;color:var(--muted);font-size:13px;">Hồ sơ gốc từ Customer App</div></div>
+  <div id="tab-lesson" style="display:none;"><div class="detail-card" style="padding:40px;text-align:center;color:var(--muted);font-size:13px;">Lesson learned chưa có dữ liệu</div></div>
+  <div id="tab-aiphan" style="display:none;">
+  <style>
+  /* AI Phân tích styles */
+  .aip-report-bar{background:#fff;border:1.5px solid var(--border);border-radius:12px;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+  .aip-report-left{flex:1;}
+  .aip-report-tag{font-size:11px;font-weight:700;color:var(--orange);display:flex;align-items:center;gap:6px;margin-bottom:3px;}
+  .aip-report-title{font-size:13px;font-weight:800;color:var(--text);margin-bottom:3px;}
+  .aip-report-desc{font-size:11.5px;color:var(--muted);}
+  .btn-phan-tich-lai{display:flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;background:var(--orange);color:#fff;border:none;font-family:'Be Vietnam Pro',sans-serif;font-size:12px;font-weight:700;cursor:pointer;}
+
+  .aip-kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px;}
+  .aip-kpi{background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:12px 16px;}
+  .aip-kpi-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);margin-bottom:4px;display:flex;align-items:center;gap:5px;}
+  .aip-kpi-val{font-size:20px;font-weight:900;letter-spacing:-0.5px;color:var(--text);}
+  .aip-kpi-sub{font-size:11px;color:var(--muted);margin-top:2px;}
+
+  /* Tóm tắt điều hành box */
+  .aip-exec-box{background:#FFFBEB;border:1.5px solid #FCD34D;border-radius:12px;padding:16px 20px;margin-bottom:14px;}
+  .aip-exec-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+  .aip-exec-title{font-size:13px;font-weight:800;color:#78350F;display:flex;align-items:center;gap:6px;}
+  .aip-exec-result{font-size:11px;font-weight:700;color:var(--orange);cursor:pointer;}
+  .aip-exec-verdict{font-size:16px;font-weight:900;color:#B45309;margin-bottom:6px;}
+  .aip-exec-desc{font-size:12px;color:#78350F;margin-bottom:12px;}
+  .aip-exec-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px;}
+  .aip-exec-cell{background:rgba(255,255,255,0.7);border-radius:8px;padding:10px 12px;border:1px solid rgba(253,211,74,0.4);}
+  .aip-exec-cell-label{font-size:9px;font-weight:700;color:#92400E;text-transform:uppercase;letter-spacing:0.3px;margin-bottom:3px;}
+  .aip-exec-cell-val{font-size:12px;font-weight:700;color:var(--text);line-height:1.4;}
+  .aip-exec-actions{display:flex;gap:8px;}
+  .btn-pheduyet{padding:7px 16px;border-radius:7px;background:#E8F8EF;border:1.5px solid var(--green);color:var(--green);font-family:'Be Vietnam Pro',sans-serif;font-size:12px;font-weight:700;cursor:pointer;}
+  .btn-chuyentd{padding:7px 16px;border-radius:7px;background:#FEF3C7;border:1.5px solid #FCD34D;color:#92400E;font-family:'Be Vietnam Pro',sans-serif;font-size:12px;font-weight:700;cursor:pointer;}
+  .btn-tuchoi2{padding:7px 16px;border-radius:7px;background:#FEE2E2;border:1.5px solid #FCA5A5;color:#B91C1C;font-family:'Be Vietnam Pro',sans-serif;font-size:12px;font-weight:700;cursor:pointer;}
+  .aip-exec-input{flex:1;border:1.5px solid #E0E6F0;border-radius:8px;padding:8px 12px;font-family:'Be Vietnam Pro',sans-serif;font-size:12px;color:var(--muted);background:#fff;outline:none;}
+
+  /* 3-col charts */
+  .aip-charts-row{display:grid;grid-template-columns:1fr 1.2fr 1fr;gap:12px;margin-bottom:14px;}
+  .aip-chart-card{background:#fff;border:1.5px solid var(--border);border-radius:12px;padding:16px 18px;}
+  .aip-chart-title{font-size:12px;font-weight:800;color:var(--text);margin-bottom:4px;}
+  .aip-chart-desc{font-size:11px;color:var(--muted);margin-bottom:12px;}
+
+  /* Gauge */
+  .gauge-wrap{display:flex;flex-direction:column;align-items:center;}
+  .gauge-labels{display:flex;justify-content:space-between;width:180px;margin-top:6px;}
+  .gauge-label{font-size:10px;color:var(--muted);}
+
+  /* Radar placeholder */
+  .radar-wrap{display:flex;flex-direction:column;align-items:center;}
+
+  /* Risk 30 ngày */
+  .risk30-chart{height:60px;position:relative;overflow:hidden;}
+
+  /* Chuỗi suy luận */
+  .aip-chain-box{background:#fff;border:1.5px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:14px;}
+  .aip-chain-header{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--border);cursor:pointer;}
+  .aip-chain-title{font-size:13px;font-weight:800;color:var(--text);display:flex;align-items:center;gap:7px;}
+  .aip-chain-sub{font-size:11px;color:var(--muted);}
+
+  /* Xu hướng + Năng lực */
+  .aip-bottom-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;}
+  .aip-trend-card{background:#fff;border:1.5px solid var(--border);border-radius:12px;padding:16px 18px;}
+  .aip-trend-title{font-size:12px;font-weight:800;color:var(--text);margin-bottom:4px;}
+  .aip-trend-desc{font-size:11px;color:var(--muted);margin-bottom:12px;}
+  .aip-latest-badge{background:var(--mid-blue);color:#fff;border-radius:6px;padding:2px 8px;font-size:10px;font-weight:700;}
+  .aip-score-big{font-size:22px;font-weight:900;color:var(--orange);}
+
+  /* Năng lực trả nợ bars */
+  .capacity-item{margin-bottom:10px;}
+  .cap-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;}
+  .cap-label{font-size:12px;font-weight:700;color:var(--text);}
+  .cap-val{font-size:12px;font-weight:700;color:var(--text);}
+  .cap-desc{font-size:11px;color:var(--muted);margin-bottom:4px;}
+  .cap-bar{height:6px;border-radius:3px;background:#F0F2F8;overflow:hidden;}
+  .cap-fill{height:100%;border-radius:3px;transition:width 0.8s ease;}
+
+  /* Reasoning + References */
+  .aip-reasoning-box{background:#fff;border:1.5px solid var(--border);border-radius:12px;padding:16px 20px;margin-bottom:14px;}
+  .aip-reasoning-title{font-size:13px;font-weight:800;color:var(--text);margin-bottom:4px;display:flex;align-items:center;gap:7px;}
+  .aip-reasoning-desc{font-size:11px;color:var(--muted);margin-bottom:12px;}
+  .aip-rr-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;}
+  .aip-luangiai{background:#F8F9FC;border-radius:10px;padding:14px 16px;}
+  .aip-luan-title{font-size:12px;font-weight:800;color:var(--text);margin-bottom:8px;}
+  .aip-luan-item{display:flex;align-items:flex-start;gap:6px;font-size:12px;color:#555;margin-bottom:6px;line-height:1.5;}
+  .aip-luan-dot{width:5px;height:5px;border-radius:50%;background:var(--mid-blue);flex-shrink:0;margin-top:6px;}
+  .aip-ref{background:#F8F9FC;border-radius:10px;padding:14px 16px;}
+  .aip-ref-title{font-size:12px;font-weight:800;color:var(--text);margin-bottom:8px;}
+  .aip-ref-item{display:flex;align-items:flex-start;gap:6px;font-size:12px;color:#555;margin-bottom:6px;line-height:1.5;}
+  .aip-ref-dot{width:5px;height:5px;border-radius:50%;background:var(--orange);flex-shrink:0;margin-top:6px;}
+
+  .aip-4grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px;}
+  .aip-4cell{background:#F8F9FC;border:1.5px solid var(--border);border-radius:10px;padding:12px 14px;}
+  .aip-4cell-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;}
+  .aip-4cell-title{font-size:11px;font-weight:800;color:var(--text);}
+  .aip-4cell-badge-ok{background:#E8F8EF;color:var(--green);border-radius:4px;padding:1px 7px;font-size:10px;font-weight:700;}
+  .aip-4cell-badge-warn{background:#FEF3C7;color:#92400E;border-radius:4px;padding:1px 7px;font-size:10px;font-weight:700;}
+  .aip-4cell-desc{font-size:11px;color:#666;line-height:1.5;}
+
+  /* Phân tích tài liệu & OCR */
+  .aip-ocr-box{background:#fff;border:1.5px solid var(--border);border-radius:12px;padding:14px 20px;margin-bottom:14px;}
+  .aip-ocr-title{font-size:13px;font-weight:800;color:var(--text);display:flex;align-items:center;gap:7px;margin-bottom:4px;}
+  .aip-ocr-desc{font-size:12px;color:var(--muted);}
+
+  /* Lịch sử phân tích */
+  .aip-history-box{background:#fff;border:1.5px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:14px;}
+  .aip-history-header{padding:14px 20px;border-bottom:1px solid var(--border);}
+  .aip-history-title{font-size:13px;font-weight:800;color:var(--text);display:flex;align-items:center;gap:7px;}
+  .aip-hist-row{display:flex;align-items:center;gap:12px;padding:11px 20px;border-bottom:1px solid #F8F9FC;font-size:12px;}
+  .aip-hist-row:last-child{border-bottom:none;}
+  .aip-hist-time{color:var(--muted);font-weight:500;white-space:nowrap;min-width:100px;}
+  .aip-hist-type{border-radius:5px;padding:2px 8px;font-size:10px;font-weight:700;white-space:nowrap;}
+  .ht-auto{background:#EFF6FF;color:var(--mid-blue);}
+  .ht-doc{background:#F5F3FF;color:#7C3AED;}
+  .ht-income{background:#E8F8EF;color:var(--green);}
+  .aip-hist-desc{flex:1;color:#555;}
+  .aip-hist-verdict{font-size:11px;font-weight:700;padding:2px 8px;border-radius:5px;white-space:nowrap;}
+  .hv-warn{background:#FEF3C7;color:#92400E;}
+  .hv-ok{background:#E8F8EF;color:var(--green);}
+  </style>
+
+  <!-- Report bar -->
+  <div class="aip-report-bar">
+    <div class="aip-report-left">
+      <div class="aip-report-tag">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#F26522" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        Báo cáo phân tích tín dụng · APP–2026–D2001
+      </div>
+      <div class="aip-report-title">Vay SXKD · HKD Minh Đức Cơ Khí · 1.200.000.000 đ · 60 tháng</div>
+      <div class="aip-report-desc">Tóm tắt điều hành, năng lực trả nợ, Reasoning + References, OCR tài liệu và đánh giá gian lận · 3 lượt phân tích · cập nhật 17:35 18/05/2026</div>
+    </div>
+    <button class="btn-phan-tich-lai">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>
+      Phân tích lại
+    </button>
+  </div>
+
+  <!-- KPI row -->
+  <div class="aip-kpi-row">
+    <div class="aip-kpi">
+      <div class="aip-kpi-label">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        THROUGHPUT HÔM NAY
+      </div>
+      <div class="aip-kpi-val">28 hồ sơ</div>
+      <div class="aip-kpi-sub">+8% so với hôm qua</div>
+    </div>
+    <div class="aip-kpi">
+      <div class="aip-kpi-label">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#27AE60" stroke-width="2"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        SLA HIT RATE 7D
+      </div>
+      <div class="aip-kpi-val" style="color:var(--green);">94%</div>
+      <div class="aip-kpi-sub">Mục tiêu ≥ 90%</div>
+    </div>
+    <div class="aip-kpi">
+      <div class="aip-kpi-label">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2"><circle cx="12" cy="12" r="9"/><polyline points="12,7 12,12 15,14"/></svg>
+        LATENCY TRUNG BÌNH
+      </div>
+      <div class="aip-kpi-val">6.3s</div>
+      <div class="aip-kpi-sub">Pipeline 6 bước</div>
+    </div>
+    <div class="aip-kpi">
+      <div class="aip-kpi-label">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#B91C1C" stroke-width="2"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/></svg>
+        TOP YẾU TỐ RỦI RO
+      </div>
+      <div style="font-size:14px;font-weight:800;color:#B45309;margin-top:4px;">Doanh thu biến động</div>
+      <div class="aip-kpi-sub">T2–T3 giảm 28%</div>
+    </div>
+  </div>
+
+  <!-- Tóm tắt điều hành -->
+  <div class="aip-exec-box">
+    <div class="aip-exec-top">
+      <div class="aip-exec-title">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+        TÓM TẮT ĐIỀU HÀNH
+      </div>
+      <div class="aip-exec-result">Cần kiểm tra bổ sung</div>
+    </div>
+    <div class="aip-exec-verdict">Cần kiểm tra bổ sung</div>
+    <div class="aip-exec-desc">Luồng kiểm tra bổ sung · Cần đối chiếu dòng tiền kinh doanh · độ tin cậy 80% · điểm rủi ro tổng hợp 67/100</div>
+    <div class="aip-exec-grid">
+      <div class="aip-exec-cell"><div class="aip-exec-cell-label">Hồ sơ</div><div class="aip-exec-cell-val" style="color:var(--orange);">Đang phân tích dòng tiền</div></div>
+      <div class="aip-exec-cell"><div class="aip-exec-cell-label">Tài liệu đạt</div><div class="aip-exec-cell-val">3/3 đã hợp lệ</div></div>
+      <div class="aip-exec-cell"><div class="aip-exec-cell-label">Cần xem lại</div><div class="aip-exec-cell-val" style="color:#B45309;">Doanh thu T2–T3 giảm 28%</div></div>
+      <div class="aip-exec-cell"><div class="aip-exec-cell-label">Trọng tâm</div><div class="aip-exec-cell-val">Cần đối chiếu kế hoạch dòng tiền</div></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <input class="aip-exec-input" type="text" placeholder="Lý do ghi đè (bắt buộc khi đổi quyết định)…">
+      <button class="btn-pheduyet">👍 Phê duyệt</button>
+      <button class="btn-chuyentd">⚠ Chuyển thẩm định</button>
+      <button class="btn-tuchoi2">👎 Từ chối</button>
+    </div>
+  </div>
+
+  <!-- 3 charts row -->
+  <div class="aip-charts-row">
+    <!-- Gauge -->
+    <div class="aip-chart-card">
+      <div class="aip-chart-title">Điểm rủi ro tổng hợp</div>
+      <div class="aip-chart-desc">Calibrated bởi mô hình SHB-Risk-v3.2 · confidence 80%</div>
+      <div class="gauge-wrap">
+        <svg width="180" height="100" viewBox="0 0 180 100">
+          <defs>
+            <linearGradient id="gaugeGrad" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stop-color="#27AE60"/>
+              <stop offset="50%" stop-color="#F59E0B"/>
+              <stop offset="100%" stop-color="#EF4444"/>
+            </linearGradient>
+          </defs>
+          <!-- Track -->
+          <path d="M20,85 A70,70 0 0,1 160,85" fill="none" stroke="#F0F2F8" stroke-width="14" stroke-linecap="round"/>
+          <!-- Fill up to 67% -->
+          <path d="M20,85 A70,70 0 0,1 160,85" fill="none" stroke="url(#gaugeGrad)" stroke-width="14" stroke-linecap="round"
+            stroke-dasharray="220" stroke-dashoffset="73"/>
+          <!-- Needle -->
+          <line x1="90" y1="85" x2="46" y2="28" stroke="#1A1A2E" stroke-width="2.5" stroke-linecap="round"/>
+          <circle cx="90" cy="85" r="5" fill="#1A1A2E"/>
+          <text x="90" y="72" text-anchor="middle" font-size="22" font-weight="900" fill="#1A1A2E" font-family="Be Vietnam Pro">67</text>
+          <text x="90" y="82" text-anchor="middle" font-size="10" fill="#aaa" font-family="Be Vietnam Pro">/ 100</text>
+        </svg>
+        <div class="gauge-labels">
+          <span class="gauge-label">0–40 An toàn</span>
+          <span class="gauge-label">40–70 Theo dõi</span>
+          <span class="gauge-label">70+ Cao</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Radar -->
+    <div class="aip-chart-card">
+      <div class="aip-chart-title">Bản đồ năng lực hồ sơ</div>
+      <div class="aip-chart-desc">So sánh 6 trục đánh giá với benchmark trung bình tệp khách hàng cùng phân khúc.</div>
+      <div class="radar-wrap">
+        <svg width="200" height="160" viewBox="0 0 200 160">
+          <!-- Axes labels -->
+          <text x="100" y="12" text-anchor="middle" font-size="9" fill="#aaa" font-family="Be Vietnam Pro">Năng lực trả nợ</text>
+          <text x="185" y="55" text-anchor="start" font-size="9" fill="#aaa" font-family="Be Vietnam Pro">Tài sản BĐ</text>
+          <text x="170" y="130" text-anchor="start" font-size="9" fill="#aaa" font-family="Be Vietnam Pro">Áp lực trả góp</text>
+          <text x="100" y="155" text-anchor="middle" font-size="9" fill="#aaa" font-family="Be Vietnam Pro">Lịch sử CIC</text>
+          <text x="16" y="130" text-anchor="start" font-size="9" fill="#aaa" font-family="Be Vietnam Pro">Ổn định thu nhập</text>
+          <text x="5" y="55" text-anchor="start" font-size="9" fill="#aaa" font-family="Be Vietnam Pro">Hành vi GD</text>
+          <!-- Grid hexagons -->
+          <polygon points="100,25 155,57 155,103 100,135 45,103 45,57" fill="none" stroke="#E8ECF4" stroke-width="1"/>
+          <polygon points="100,45 140,67 140,93 100,115 60,93 60,67" fill="none" stroke="#E8ECF4" stroke-width="1"/>
+          <polygon points="100,65 125,78 125,82 100,95 75,82 75,78" fill="none" stroke="#E8ECF4" stroke-width="1"/>
+          <!-- Axes -->
+          <line x1="100" y1="25" x2="100" y2="135" stroke="#E8ECF4" stroke-width="1"/>
+          <line x1="45" y1="57" x2="155" y2="103" stroke="#E8ECF4" stroke-width="1"/>
+          <line x1="155" y1="57" x2="45" y2="103" stroke="#E8ECF4" stroke-width="1"/>
+          <!-- Data: năng lực trả nợ thấp (biến động), tài sản BĐ tốt, áp lực trả góp trung bình, CIC tốt, ổn định thấp (biến động), hành vi GD tốt -->
+          <polygon points="100,55 142,68 138,92 100,120 68,90 62,65"
+            fill="rgba(242,101,34,0.15)" stroke="#F26522" stroke-width="1.5"/>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Donut phân bổ luồng -->
+    <div class="aip-chart-card">
+      <div class="aip-chart-title">Phân bổ luồng xử lý 7 ngày</div>
+      <div class="aip-chart-desc">Tỷ lệ định tuyến theo verdict trên toàn bộ hồ sơ chạy qua pipeline.</div>
+      <div style="display:flex;align-items:center;gap:14px;">
+        <svg width="90" height="90" viewBox="0 0 90 90">
+          <circle cx="45" cy="45" r="34" fill="none" stroke="#F0F2F8" stroke-width="14"/>
+          <!-- Tự động 38% -->
+          <circle cx="45" cy="45" r="34" fill="none" stroke="#27AE60" stroke-width="14"
+            stroke-dasharray="81 213" stroke-dashoffset="0" stroke-linecap="butt"/>
+          <!-- Bổ sung 27% -->
+          <circle cx="45" cy="45" r="34" fill="none" stroke="#F26522" stroke-width="14"
+            stroke-dasharray="57 213" stroke-dashoffset="-81" stroke-linecap="butt"/>
+          <!-- Chuyên viên 22% -->
+          <circle cx="45" cy="45" r="34" fill="none" stroke="#2B4D9B" stroke-width="14"
+            stroke-dasharray="47 213" stroke-dashoffset="-138" stroke-linecap="butt"/>
+          <!-- Từ chối 13% -->
+          <circle cx="45" cy="45" r="34" fill="none" stroke="#EF4444" stroke-width="14"
+            stroke-dasharray="28 213" stroke-dashoffset="-185" stroke-linecap="butt"/>
+        </svg>
+        <div style="display:flex;flex-direction:column;gap:5px;">
+          <div style="display:flex;align-items:center;gap:6px;font-size:11px;"><div style="width:10px;height:10px;background:#27AE60;border-radius:2px;flex-shrink:0;"></div>Tự động <strong style="margin-left:auto;padding-left:8px;">38%</strong></div>
+          <div style="display:flex;align-items:center;gap:6px;font-size:11px;"><div style="width:10px;height:10px;background:#F26522;border-radius:2px;flex-shrink:0;"></div>Bổ sung <strong style="margin-left:auto;padding-left:8px;">27%</strong></div>
+          <div style="display:flex;align-items:center;gap:6px;font-size:11px;"><div style="width:10px;height:10px;background:#2B4D9B;border-radius:2px;flex-shrink:0;"></div>Chuyên viên <strong style="margin-left:auto;padding-left:8px;">22%</strong></div>
+          <div style="display:flex;align-items:center;gap:6px;font-size:11px;"><div style="width:10px;height:10px;background:#EF4444;border-radius:2px;flex-shrink:0;"></div>Từ chối <strong style="margin-left:auto;padding-left:8px;">13%</strong></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Rủi ro 30 ngày -->
+  <div class="aip-trend-card" style="margin-bottom:14px;">
+    <div class="aip-chart-title">Rủi ro 30 ngày qua</div>
+    <div class="aip-chart-desc">Theo dõi điểm rủi ro hồ sơ trong 30 ngày liền kề.</div>
+    <div style="height:50px;position:relative;">
+      <svg width="100%" height="50" viewBox="0 0 700 50" preserveAspectRatio="none">
+        <path d="M0,35 C50,32 100,30 150,28 C200,26 250,30 300,28 C350,26 400,24 450,28 C500,32 550,28 600,26 C650,25 680,26 700,24" fill="none" stroke="#E8ECF4" stroke-width="2"/>
+        <path d="M0,42 C50,40 100,38 150,36 C200,33 250,36 300,34 C350,32 400,30 450,32 C500,36 550,32 600,30 C650,28 680,30 700,28" fill="rgba(242,101,34,0.08)" stroke="none"/>
+      </svg>
+    </div>
+  </div>
+
+  <!-- Chuỗi suy luận -->
+  <div class="aip-chain-box" style="margin-bottom:14px;">
+    <div class="aip-chain-header">
+      <div class="aip-chain-title">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F26522" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+        Chuỗi suy luận AI (3 bước)
+      </div>
+      <div class="aip-chain-sub">Chain-of-thought · mỗi bước gắn citation tới chính sách áp dụng</div>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+  </div>
+
+  <!-- Xu hướng + Năng lực trả nợ -->
+  <div class="aip-bottom-row">
+    <div class="aip-trend-card">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:4px;">
+        <div>
+          <div class="aip-trend-title">Xu hướng rủi ro qua các lần phân tích</div>
+          <div style="font-size:11px;color:var(--muted);margin-bottom:10px;">Điểm càng thấp càng an toàn. Biểu đồ cho biết sau mỗi lần AI đọc lại hồ sơ, mức rủi ro đang giảm, giữ nguyên hay tăng.</div>
+        </div>
+        <div style="text-align:right;flex-shrink:0;margin-left:12px;">
+          <div class="aip-latest-badge">GẦN NHẤT</div>
+          <div class="aip-score-big">67/100</div>
+        </div>
+      </div>
+      <!-- Mini bar chart -->
+      <div style="display:flex;align-items:flex-end;gap:20px;height:70px;padding:0 10px;margin-bottom:8px;position:relative;">
+        <div style="display:flex;flex-direction:column;align-items:center;flex:1;">
+          <div style="font-size:11px;font-weight:700;margin-bottom:4px;color:#555;">44</div>
+          <div style="width:100%;background:#F26522;border-radius:4px 4px 0 0;height:44px;"></div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;flex:1;">
+          <div style="font-size:11px;font-weight:700;margin-bottom:4px;color:#555;">49</div>
+          <div style="width:100%;background:#F59E0B;border-radius:4px 4px 0 0;height:49px;"></div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;flex:1;">
+          <div style="font-size:11px;font-weight:700;margin-bottom:4px;color:#B91C1C;">67</div>
+          <div style="width:100%;background:#EF4444;border-radius:4px 4px 0 0;height:67px;"></div>
+        </div>
+        <div style="position:absolute;bottom:0;left:0;right:0;border-top:1px solid #F0F2F8;"></div>
+      </div>
+      <div style="display:flex;gap:14px;">
+        <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--muted);"><div style="width:8px;height:8px;background:#F26522;border-radius:50%;"></div>3 lần phân tích</div>
+        <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--muted);"><div style="width:16px;height:2px;background:#F59E0B;"></div>Từ 40: chuyên viên xem nhanh</div>
+        <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--muted);"><div style="width:16px;height:2px;background:#EF4444;"></div>Từ 60: kiểm soát rủi ro</div>
+      </div>
+    </div>
+
+    <div class="aip-trend-card">
+      <div class="aip-trend-title" style="margin-bottom:4px;">Năng lực trả nợ</div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:12px;">Các tỷ lệ được trình bày bằng ngôn ngữ nghiệp vụ để chuyên viên nhìn nhanh điểm mạnh/yếu của hồ sơ.</div>
+      <div class="capacity-item">
+        <div class="cap-header"><span class="cap-label">Năng lực trả nợ</span><span class="cap-val" style="color:#B45309;">19%</span></div>
+        <div class="cap-desc">Tổng nghĩa vụ sau vay so với thu nhập xác minh. Biến động doanh thu T2–T3 cần theo dõi.</div>
+        <div class="cap-bar"><div class="cap-fill" style="width:19%;background:#F59E0B;"></div></div>
+      </div>
+      <div class="capacity-item">
+        <div class="cap-header"><span class="cap-label">Tài sản bảo đảm</span><span class="cap-val" style="color:var(--green);">65%</span></div>
+        <div class="cap-desc">Khoản vay so với giá trị nhà xưởng 320m² tại Bình Tân. LTV tốt.</div>
+        <div class="cap-bar"><div class="cap-fill" style="width:65%;background:#27AE60;"></div></div>
+      </div>
+      <div class="capacity-item">
+        <div class="cap-header"><span class="cap-label">Áp lực trả góp</span><span class="cap-val" style="color:#F59E0B;">30%</span></div>
+        <div class="cap-desc">Khoản trả góp dự kiến so với thu nhập. Biến động doanh thu làm tăng rủi ro.</div>
+        <div class="cap-bar"><div class="cap-fill" style="width:30%;background:#F59E0B;"></div></div>
+      </div>
+      <div class="capacity-item">
+        <div class="cap-header"><span class="cap-label">Lịch sử tín dụng</span><span class="cap-val" style="color:var(--mid-blue);">Nhóm 1</span></div>
+        <div class="cap-desc">CIC nhóm 1 — không có nợ quá hạn. Điểm bureau 680/850.</div>
+        <div class="cap-bar"><div class="cap-fill" style="width:72%;background:#2B4D9B;"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reasoning + References -->
+  <div class="aip-reasoning-box">
+    <div class="aip-reasoning-title">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F26522" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      Reasoning + References
+    </div>
+    <div class="aip-reasoning-desc">AI không chỉ trả điểm số; báo cáo nối từng nhận định với evidence tài liệu và quy định xử lý hồ sơ.</div>
+    <div class="aip-rr-grid">
+      <div class="aip-luangiai">
+        <div class="aip-luan-title">Luận giải theo hồ sơ</div>
+        <div class="aip-luan-item"><div class="aip-luan-dot"></div>Định danh, cư trú, lịch sử tín dụng và cảnh báo nội bộ không ghi nhận điểm chặn chính.</div>
+        <div class="aip-luan-item"><div class="aip-luan-dot"></div>Thu nhập từ HKD Minh Đức Cơ Khí đã được đưa vào mô hình để tính hạn mức và nghĩa vụ trả nợ.</div>
+        <div class="aip-luan-item"><div class="aip-luan-dot" style="background:#B91C1C;"></div>Doanh thu T2–T3 giảm 28% — yếu tố bất thường cần chuyên viên xác minh kế hoạch dòng tiền.</div>
+        <div class="aip-luan-item"><div class="aip-luan-dot"></div>Năng lực trả nợ 19% và áp lực trả góp 30%: đang trong vùng có thể xử lý theo chính sách sản phẩm.</div>
+        <div class="aip-luan-item"><div class="aip-luan-dot"></div>Checklist hiện có đủ căn cứ để AI giải thích hướng xử lý.</div>
+      </div>
+      <div class="aip-ref">
+        <div class="aip-ref-title">References</div>
+        <div class="aip-ref-item"><div class="aip-ref-dot"></div>Chính sách sản phẩm: kiểm tra định danh, năng lực trả nợ, tài sản bảo đảm và nhóm tài liệu bắt buộc.</div>
+        <div class="aip-ref-item"><div class="aip-ref-dot"></div>Quy định hồ sơ: tài liệu khách hàng tải lên được tách khỏi tài liệu SHB/dự án để tránh yêu cầu sai nghiệp vụ.</div>
+        <div class="aip-ref-item"><div class="aip-ref-dot"></div>Quy tắc phân luồng: hồ sơ sạch có thể phê duyệt; hồ sơ thiếu chứng từ hoặc dòng tiền biến động cần chuyên viên rà soát.</div>
+        <div class="aip-ref-item"><div class="aip-ref-dot"></div>Luồng chính sách tín dụng — Định danh → thu nhập/dòng tiền → khả năng trả nợ → checklist → phân luồng xử lý.</div>
+        <div class="aip-ref-item"><div class="aip-ref-dot"></div>Ngưỡng khả năng trả nợ — Các tỷ lệ nghĩa vụ trả nợ vượt vùng an toàn phải có chuyên viên rà soát.</div>
+      </div>
+    </div>
+
+    <!-- 4 cell checklist -->
+    <div class="aip-4grid">
+      <div class="aip-4cell">
+        <div class="aip-4cell-header"><span class="aip-4cell-title">Kiểm tra chính sách</span><span class="aip-4cell-badge-warn">Cần xem</span></div>
+        <div class="aip-4cell-desc">Cần đối chiếu dòng tiền kinh doanh · năng lực trả nợ 19% · áp lực trả góp 30% · LTV nhà xưởng 65%.</div>
+      </div>
+      <div class="aip-4cell">
+        <div class="aip-4cell-header"><span class="aip-4cell-title">Checklist tài liệu</span><span class="aip-4cell-badge-ok">Đạt</span></div>
+        <div class="aip-4cell-desc">Checklist bắt buộc đã đủ căn cứ để tiếp tục xử lý. 3/3 tài liệu hợp lệ.</div>
+      </div>
+      <div class="aip-4cell">
+        <div class="aip-4cell-header"><span class="aip-4cell-title">Bản đồ rủi ro</span><span class="aip-4cell-badge-ok">Đạt</span></div>
+        <div class="aip-4cell-desc">Điểm rủi ro 67/100, CIC nhóm 1, lịch sử tín dụng sạch. Flag doanh thu T2–T3 biến động.</div>
+      </div>
+      <div class="aip-4cell">
+        <div class="aip-4cell-header"><span class="aip-4cell-title">Kho tri thức</span><span class="aip-4cell-badge-ok">Đạt</span></div>
+        <div class="aip-4cell-desc">Luồng chính sách, checklist hồ sơ và ngưỡng trả nợ được trích dẫn để chuyên viên giải thích lại cho khách hàng.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Phân tích tài liệu & OCR -->
+  <div class="aip-ocr-box">
+    <div class="aip-ocr-title">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F26522" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/></svg>
+      Phân tích tài liệu &amp; OCR
+    </div>
+    <div class="aip-ocr-desc">Đã xử lý 3 tài liệu: ĐKKD (đã đối chiếu), sao kê 12 tháng (phát hiện biến động T2–T3), hợp đồng lao động (hợp lệ). AI đang dùng chỉ số tổng hợp để phân tích dòng tiền.</div>
+  </div>
+
+  <!-- Lịch sử phân tích -->
+  <div class="aip-history-box">
+    <div class="aip-history-header">
+      <div class="aip-history-title">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2"><circle cx="12" cy="12" r="9"/><polyline points="12,7 12,12 15,14"/></svg>
+        Lịch sử phân tích (3)
+      </div>
+    </div>
+    <div class="aip-hist-row">
+      <div class="aip-hist-time">17:30 18/05/2026</div>
+      <div class="aip-hist-type ht-auto">TỰ ĐỘNG</div>
+      <div class="aip-hist-desc">Luồng kiểm tra bổ sung · Cần đối chiếu dòng tiền kinh doanh · điểm 67/100</div>
+      <div class="aip-hist-verdict hv-warn">Cần kiểm tra bổ sung</div>
+    </div>
+    <div class="aip-hist-row">
+      <div class="aip-hist-time">17:24 17/05/2026</div>
+      <div class="aip-hist-type ht-doc">TÀI LIỆU</div>
+      <div class="aip-hist-desc">Phát hiện doanh thu T2–T3 giảm 28% · Thiếu giải trình biến động · điểm 49/100</div>
+      <div class="aip-hist-verdict hv-warn">Cần kiểm tra bổ sung</div>
+    </div>
+    <div class="aip-hist-row">
+      <div class="aip-hist-time">16:00 17/05/2026</div>
+      <div class="aip-hist-type ht-income">THU NHẬP</div>
+      <div class="aip-hist-desc">Luồng tự động · Khả năng trả nợ 19% trong ngưỡng · điểm 44/100</div>
+      <div class="aip-hist-verdict hv-ok">Có thể phê duyệt tự động</div>
+    </div>
+  </div>
+
+  </div>
+  <div id="tab-traodoi" style="display:none;"><div class="detail-card" style="padding:40px;text-align:center;color:var(--muted);font-size:13px;">Trao đổi nội bộ</div></div>
+  <div id="tab-timeline" style="display:none;"><div class="detail-card" style="padding:40px;text-align:center;color:var(--muted);font-size:13px;">Timeline 4 sự kiện</div></div>
+
+</div>
+</div><!-- /screen-tmd-detail -->
+
+<script>
+function switchTab(el, tabId) {
+  // deactivate all tabs
+  el.closest('.detail-tabs').querySelectorAll('.dtab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  // hide all tab panels
+  ['tab-tongquan','tab-workflow','tab-tailieus','tab-hosogoc','tab-lesson','tab-aiphan','tab-traodoi','tab-timeline'].forEach(id => {
+    const p = document.getElementById(id);
+    if (p) p.style.display = 'none';
+  });
+  const panel = document.getElementById(tabId);
+  if (panel) panel.style.display = 'block';
+}
+</script>
+
+<!-- ===== LQC DETAIL SCREEN ===== -->
+<div class="main" id="screen-lqc-detail" style="display:none;">
+<style>
+/* Green AI approval box */
+.lqc-ai-verdict-box{
+  border-radius:14px;padding:20px 24px;margin-bottom:16px;
+  position:relative;overflow:hidden;
+  background:linear-gradient(135deg,#ECFDF5 0%,#D1FAE5 45%,#A7F3D0 100%);
+  border:1.5px solid #6EE7B7;
+}
+.lqc-ai-verdict-box::before{
+  content:'';position:absolute;top:-40px;right:-40px;
+  width:200px;height:200px;
+  background:radial-gradient(circle,rgba(52,211,153,0.2),transparent 70%);
+  pointer-events:none;
+}
+.lavb-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.lavb-title{font-size:14px;font-weight:800;color:#065F46;display:flex;align-items:center;gap:8px;}
+.lavb-icon{width:28px;height:28px;border-radius:7px;background:#D1FAE5;border:1.5px solid #6EE7B7;display:flex;align-items:center;justify-content:center;}
+.lavb-badge{background:#D1FAE5;border:1.5px solid #34D399;color:#065F46;border-radius:6px;padding:3px 12px;font-size:11px;font-weight:700;display:flex;align-items:center;gap:5px;}
+.lavb-verdict{font-size:18px;font-weight:900;color:#065F46;margin-bottom:6px;}
+.lavb-desc{font-size:12.5px;color:#047857;margin-bottom:14px;line-height:1.6;}
+.lavb-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:14px;}
+.lavb-cell{background:rgba(255,255,255,0.7);border-radius:8px;padding:10px 12px;border:1px solid rgba(110,231,183,0.4);}
+.lavb-cell-label{font-size:9px;font-weight:700;color:#047857;text-transform:uppercase;letter-spacing:0.3px;margin-bottom:3px;}
+.lavb-cell-val{font-size:12px;font-weight:700;color:var(--text);line-height:1.4;}
+.lavb-cell-val.green{color:var(--green);}
+.lavb-bottom{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.lavb-rules{background:rgba(255,255,255,0.65);border-radius:10px;padding:14px 16px;border:1px solid rgba(110,231,183,0.4);}
+.lavb-rules-title{font-size:12px;font-weight:800;color:#065F46;margin-bottom:8px;}
+.lavb-rule-item{display:flex;align-items:flex-start;gap:6px;font-size:12px;color:#3D6B54;margin-bottom:5px;line-height:1.5;}
+.lavb-rule-dot{width:5px;height:5px;border-radius:50%;background:#34D399;flex-shrink:0;margin-top:6px;}
+.lavb-action{background:rgba(255,255,255,0.65);border-radius:10px;padding:14px 16px;border:1px solid rgba(110,231,183,0.4);}
+.lavb-action-title{font-size:12px;font-weight:800;color:#065F46;margin-bottom:6px;}
+.lavb-action-text{font-size:12px;color:#3D6B54;line-height:1.6;}
+.btn-xemxet-lai{display:flex;align-items:center;gap:6px;padding:9px 18px;border-radius:8px;background:#fff;border:1.5px solid #6EE7B7;color:#047857;font-family:'Be Vietnam Pro',sans-serif;font-size:12px;font-weight:700;cursor:pointer;margin-top:12px;transition:background 0.2s;}
+.btn-xemxet-lai:hover{background:#F0FDF4;}
+</style>
+
+<div class="detail-body">
+  <!-- Breadcrumb -->
+  <div class="breadcrumb" onclick="showHoSoVay(event)">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+    <span>Hồ sơ vay</span>
+  </div>
+
+  <!-- Header -->
+  <div class="detail-header-row">
+    <div>
+      <div class="detail-name">
+        Lê Quốc Cường
+        <span class="detail-app-id">APP–2026–1003</span>
+      </div>
+      <div class="detail-sub">Vay mua nhà dự án liên kết · Vinhomes Ocean Park 3 · 2.500.000.000 đ · 240 tháng · FPT Software – Quận 7, HCM</div>
+    </div>
+    <div class="detail-header-actions">
+      <div style="display:flex;align-items:center;gap:5px;padding:7px 14px;border-radius:7px;background:#E8F8EF;border:1.5px solid var(--green);color:var(--green);font-size:12px;font-weight:700;">
+        <svg width="13" height="13" viewBox="0 0 12 12" fill="none" stroke="#27AE60" stroke-width="2.5"><polyline points="2,6 5,9 10,3"/></svg>
+        AI đã phê duyệt tự động
+      </div>
+      <button class="btn-xemxet-lai" onclick="alert('Chuyển sang luồng thẩm định thủ công')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        Xem xét lại
+      </button>
+      <button class="btn-cv">Ký hợp đồng</button>
+    </div>
+  </div>
+
+  <!-- KPI row -->
+  <div class="detail-kpi-row">
+    <div class="detail-kpi" style="border-color:#A7F3D0;background:#F0FDF7;">
+      <div class="dkpi-label">Điểm rủi ro</div>
+      <div class="dkpi-val" style="color:var(--green);">28/100</div>
+    </div>
+    <div class="detail-kpi" style="border-color:#A7F3D0;background:#F0FDF7;">
+      <div class="dkpi-label">Cách xử lý</div>
+      <div style="font-size:13px;font-weight:800;color:var(--green);margin-top:4px;">✓ Phê duyệt tự động</div>
+    </div>
+    <div class="detail-kpi" style="border-color:#A7F3D0;background:#F0FDF7;">
+      <div class="dkpi-label">Giấy tờ bắt buộc hợp lệ</div>
+      <div class="dkpi-val" style="color:var(--green);">4/4</div>
+    </div>
+    <div class="detail-kpi" style="border-color:#A7F3D0;background:#F0FDF7;">
+      <div class="dkpi-label">Kết quả</div>
+      <div style="font-size:12px;font-weight:700;color:var(--green);margin-top:4px;">Tỷ lệ trả nợ phù hợp · CIC nhóm 1</div>
+    </div>
+  </div>
+
+  <!-- AI Approval Box (GREEN gradient) -->
+  <div class="lqc-ai-verdict-box">
+    <div class="lavb-top">
+      <div class="lavb-title">
+        <div class="lavb-icon">
+          <svg width="15" height="15" viewBox="0 0 12 12" fill="none" stroke="#059669" stroke-width="2.5"><polyline points="2,6 5,9 10,3"/></svg>
+        </div>
+        Phán quyết AI · Phê duyệt tự động thành công
+      </div>
+      <div class="lavb-badge">
+        <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="#065F46" stroke-width="2.5"><polyline points="2,6 5,9 10,3"/></svg>
+        Có thể tự động xử lý
+      </div>
+    </div>
+    <div class="lavb-verdict">Hồ sơ đã được phê duyệt tự động</div>
+    <div class="lavb-desc">Tất cả điều kiện phê duyệt đã được xác minh. AI đã kiểm tra định danh, thu nhập, CIC, giấy tờ pháp lý dự án và khả năng trả nợ — hồ sơ đủ điều kiện phê duyệt không cần chuyên viên can thiệp. Chuyên viên có thể xem xét lại nếu cần.</div>
+
+    <div class="lavb-grid">
+      <div class="lavb-cell"><div class="lavb-cell-label">Trạng thái</div><div class="lavb-cell-val green">Phê duyệt tự động hoàn tất</div></div>
+      <div class="lavb-cell"><div class="lavb-cell-label">Kiểm tra ban đầu</div><div class="lavb-cell-val green">Phù hợp</div></div>
+      <div class="lavb-cell"><div class="lavb-cell-label">Thu nhập</div><div class="lavb-cell-val green">80.000.000 VND · xác minh</div></div>
+      <div class="lavb-cell"><div class="lavb-cell-label">Khả năng trả nợ</div><div class="lavb-cell-val green">20% · trong ngưỡng an toàn</div></div>
+      <div class="lavb-cell"><div class="lavb-cell-label">Checklist</div><div class="lavb-cell-val green">4/4 giấy tờ · đạt đủ</div></div>
+    </div>
+
+    <div class="lavb-bottom">
+      <div class="lavb-rules">
+        <div class="lavb-rules-title">Quy tắc khớp — tất cả đạt</div>
+        <div class="lavb-rule-item"><div class="lavb-rule-dot"></div>Định danh, cư trú, CIC nhóm 1 và blacklist không chặn.</div>
+        <div class="lavb-rule-item"><div class="lavb-rule-dot"></div>Thu nhập 80.000.000 VND/tháng từ FPT Software — đã xác minh qua sao kê + hợp đồng lao động.</div>
+        <div class="lavb-rule-item"><div class="lavb-rule-dot"></div>Tỷ lệ trả nợ 20% nằm trong ngưỡng phê duyệt tự động (&lt;35%).</div>
+        <div class="lavb-rule-item"><div class="lavb-rule-dot"></div>Dự án Vinhomes Ocean Park 3 đã được SHB thẩm định pháp lý, không cần xác nhận CDT.</div>
+        <div class="lavb-rule-item"><div class="lavb-rule-dot"></div>4/4 giấy tờ bắt buộc hợp lệ — CCCD, sao kê lương, hợp đồng lao động, hợp đồng mua bán căn hộ.</div>
+      </div>
+      <div class="lavb-action">
+        <div class="lavb-action-title">Hành động đề xuất &amp; bước tiếp theo</div>
+        <div class="lavb-action-text">Hồ sơ đã phê duyệt tự động thành công. Chuyên viên xác nhận lịch ký hợp đồng và thông tin tài sản/bên nhận tiền để SHB tiến hành giải ngân. Nếu cần xem xét lại, bấm nút "Xem xét lại" để chuyển sang luồng thẩm định thủ công.</div>
+        <button class="btn-xemxet-lai">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          Chuyên viên xem xét lại
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="detail-tabs" id="lqc-tabs">
+    <div class="dtab active" onclick="switchTabLQC(this,'lqc-tab-tongquan')">Tổng quan</div>
+    <div class="dtab" onclick="switchTabLQC(this,'lqc-tab-workflow')">Workflow</div>
+    <div class="dtab" onclick="switchTabLQC(this,'lqc-tab-tailieus')">Tài liệu <span class="dtab-count">4</span></div>
+    <div class="dtab" onclick="switchTabLQC(this,'lqc-tab-hosogoc')">Hồ sơ gốc</div>
+    <div class="dtab" onclick="switchTabLQC(this,'lqc-tab-lesson')">Lesson learned</div>
+    <div class="dtab" onclick="switchTabLQC(this,'lqc-tab-aiphan')">AI Phân tích</div>
+    <div class="dtab" onclick="switchTabLQC(this,'lqc-tab-traodoi')">Trao đổi</div>
+    <div class="dtab" onclick="switchTabLQC(this,'lqc-tab-timeline')">Timeline <span class="dtab-count">5</span></div>
+  </div>
+
+  <!-- Tab: Tổng quan -->
+  <div id="lqc-tab-tongquan">
+  <div class="detail-two-col">
+    <!-- Left: loan info -->
+    <div class="detail-card">
+      <div class="detail-card-title">Thông tin hồ sơ</div>
+      <table class="info-table">
+        <tr><td>Khách hàng</td><td>Lê Quốc Cường <span style="color:var(--muted);font-weight:400;margin-left:8px;">CIF</span></td><td style="color:var(--muted);font-weight:400;padding-right:12px;">CUS-1003</td></tr>
+        <tr><td>Sản phẩm</td><td>Vay mua nhà dự án liên kết</td><td style="color:var(--muted);">Loại vay</td><td>Vay mua nhà</td></tr>
+        <tr><td>Số tiền</td><td style="font-weight:800;color:var(--text);">2.500.000.000 đ</td><td style="color:var(--muted);">Kỳ hạn</td><td>240 tháng</td></tr>
+        <tr><td>Tài sản đảm bảo</td><td>Căn hộ A12-1503 · Vinhomes Ocean Park 3</td><td style="color:var(--muted);">Officer</td><td style="color:var(--green);font-weight:700;">AI tự động</td></tr>
+        <tr><td>Tạo lúc</td><td>15:30 16/05/2026</td><td style="color:var(--muted);">Cập nhật</td><td>16:25 18/05/2026</td></tr>
+      </table>
+      <div class="note-bar" style="border-left-color:var(--green);background:#F0FDF7;">Ghi chú: Hồ sơ đã được AI phê duyệt tự động. Thu nhập ổn định từ FPT Software, dự án Vinhomes đã thẩm định pháp lý.</div>
+    </div>
+
+    <!-- Right: workflow status -->
+    <div class="detail-card" style="border-color:#A7F3D0;background:#FAFFFE;">
+      <div class="detail-card-title" style="display:flex;align-items:center;gap:6px;">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#27AE60" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Trạng thái workflow
+      </div>
+      <div class="wf-item">
+        <div class="wf-line-wrap"><div class="wf-circle done"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="#27AE60" stroke-width="2.5"><polyline points="2,6 5,9 10,3"/></svg></div><div class="wf-vert"></div></div>
+        <div><div class="wf-name">Khách tạo hồ sơ <span class="badge-done">Hoàn thành</span></div><div class="wf-desc">eKYC + chọn sản phẩm Vay mua nhà dự án liên kết.</div></div>
+      </div>
+      <div class="wf-item">
+        <div class="wf-line-wrap"><div class="wf-circle done"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="#27AE60" stroke-width="2.5"><polyline points="2,6 5,9 10,3"/></svg></div><div class="wf-vert"></div></div>
+        <div><div class="wf-name">Thông tin cá nhân <span class="badge-done">Hoàn thành</span></div><div class="wf-desc">CCCD eKYC SBV chuẩn · Quận 7, HCM · đã lập gia đình.</div></div>
+      </div>
+      <div class="wf-item">
+        <div class="wf-line-wrap"><div class="wf-circle done"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="#27AE60" stroke-width="2.5"><polyline points="2,6 5,9 10,3"/></svg></div><div class="wf-vert"></div></div>
+        <div><div class="wf-name">Thu nhập &amp; nghề nghiệp <span class="badge-done">Hoàn thành</span></div><div class="wf-desc">80.000.000 VND/tháng · FPT Software · sao kê 6 tháng đã xác minh.</div></div>
+      </div>
+      <div class="wf-item">
+        <div class="wf-line-wrap"><div class="wf-circle done"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="#27AE60" stroke-width="2.5"><polyline points="2,6 5,9 10,3"/></svg></div><div class="wf-vert"></div></div>
+        <div><div class="wf-name">Tài liệu hồ sơ <span class="badge-done">Hoàn thành</span></div><div class="wf-desc">4/4 tài liệu hợp lệ · CCCD, sao kê lương, HĐ lao động, HĐ mua bán căn hộ.</div></div>
+      </div>
+      <div class="wf-item">
+        <div class="wf-line-wrap"><div class="wf-circle done" style="background:linear-gradient(135deg,#D1FAE5,#A7F3D0);border-color:#34D399;"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="#059669" stroke-width="2.5"><polyline points="2,6 5,9 10,3"/></svg></div><div class="wf-vert" style="background:linear-gradient(to bottom,#34D399,#E8F8EF);"></div></div>
+        <div><div class="wf-name">Phê duyệt tự động <span style="background:linear-gradient(90deg,#D1FAE5,#A7F3D0);color:#065F46;border:1px solid #34D399;border-radius:4px;padding:1px 8px;font-size:10px;font-weight:700;">✓ AI Phê duyệt</span></div><div class="wf-desc" style="color:#059669;font-weight:600;">Điểm rủi ro 28/100 · CIC nhóm 1 · DTI 20% · tất cả điều kiện đạt.</div></div>
+      </div>
+      <div class="wf-item">
+        <div class="wf-line-wrap"><div class="wf-circle done"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="#27AE60" stroke-width="2.5"><polyline points="2,6 5,9 10,3"/></svg></div></div>
+        <div><div class="wf-name">Kết quả <span class="badge-done">Hoàn thành</span></div><div class="wf-desc">Điều kiện phê duyệt sẵn sàng · chờ ký hợp đồng và giải ngân.</div></div>
+      </div>
+    </div>
+  </div>
+  </div><!-- /lqc-tab-tongquan -->
+
+  <!-- Placeholder tabs LQC -->
+  <div id="lqc-tab-workflow" style="display:none;">
+  <div class="wf-full-box">
+    <div class="wf-full-header">
+      <div class="wf-full-title">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#27AE60" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Workflow xử lý hồ sơ
+      </div>
+      <div class="wf-full-sync">Đồng bộ với form đăng ký bên Customer App · Tất cả bước hoàn thành</div>
+    </div>
+
+    <!-- 1 -->
+    <div class="wf-full-item">
+      <div class="wffi-line"><div class="wffi-circle done"><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="#27AE60" stroke-width="2.5"><polyline points="2,6 5,9 10,3"/></svg></div><div class="wffi-vert"></div></div>
+      <div class="wffi-body">
+        <div class="wffi-name">Khách tạo hồ sơ <span class="badge-done">Hoàn thành</span> <span class="wf-link">⇢ Customer Wizard · Bước 1</span></div>
+        <div class="wffi-desc">eKYC SBV chuẩn · chọn sản phẩm Vay mua nhà dự án liên kết.</div>
+      </div>
+    </div>
+
+    <!-- 2 -->
+    <div class="wf-full-item">
+      <div class="wffi-line"><div class="wffi-circle done"><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="#27AE60" stroke-width="2.5"><polyline points="2,6 5,9 10,3"/></svg></div><div class="wffi-vert"></div></div>
+      <div class="wffi-body">
+        <div class="wffi-name">Thông tin cá nhân <span class="badge-done">Hoàn thành</span> <span class="wf-link">⇢ Wizard · personal</span></div>
+        <div class="wffi-desc">CCCD xác minh eKYC · địa chỉ Quận 7, HCM · đã lập gia đình · 1 con nhỏ.</div>
+      </div>
+    </div>
+
+    <!-- 3 -->
+    <div class="wf-full-item">
+      <div class="wffi-line"><div class="wffi-circle done"><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="#27AE60" stroke-width="2.5"><polyline points="2,6 5,9 10,3"/></svg></div><div class="wffi-vert"></div></div>
+      <div class="wffi-body">
+        <div class="wffi-name">Thu nhập &amp; nghề nghiệp <span class="badge-done">Hoàn thành</span> <span class="wf-link">⇢ Wizard · income</span></div>
+        <div class="wffi-desc">80.000.000 VND/tháng · Kỹ sư phần mềm Senior · FPT Software HCM · sao kê 6 tháng đã xác minh.</div>
+      </div>
+    </div>
+
+    <!-- 4 -->
+    <div class="wf-full-item">
+      <div class="wffi-line"><div class="wffi-circle done"><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="#27AE60" stroke-width="2.5"><polyline points="2,6 5,9 10,3"/></svg></div><div class="wffi-vert"></div></div>
+      <div class="wffi-body">
+        <div class="wffi-name">Chi tiết khoản vay <span class="badge-done">Hoàn thành</span> <span class="wf-link">⇢ Wizard · loan</span></div>
+        <div class="wffi-desc">2.500.000.000 đ · 240 tháng · tài sản bảo đảm: căn hộ A12-1503 Vinhomes Ocean Park 3 (hình thành tương lai).</div>
+      </div>
+    </div>
+
+    <!-- 5 -->
+    <div class="wf-full-item">
+      <div class="wffi-line"><div class="wffi-circle done"><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="#27AE60" stroke-width="2.5"><polyline points="2,6 5,9 10,3"/></svg></div><div class="wffi-vert"></div></div>
+      <div class="wffi-body">
+        <div class="wffi-name">Tài liệu hồ sơ <span class="badge-done">Hoàn thành</span></div>
+        <div class="wffi-desc">4/4 tài liệu hợp lệ: CCCD, sao kê lương 6 tháng, hợp đồng lao động, hợp đồng mua bán căn hộ.</div>
+      </div>
+    </div>
+
+    <!-- 6 -->
+    <div class="wf-full-item">
+      <div class="wffi-line"><div class="wffi-circle done"><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="#27AE60" stroke-width="2.5"><polyline points="2,6 5,9 10,3"/></svg></div><div class="wffi-vert"></div></div>
+      <div class="wffi-body">
+        <div class="wffi-name">AI trích xuất + đối chiếu (OCR) <span class="badge-done">Hoàn thành</span></div>
+        <div class="wffi-desc">OCR + LLM map sang trường chuẩn · không phát hiện bất thường · tất cả trường khớp hồ sơ.</div>
+      </div>
+    </div>
+
+    <!-- 7 -->
+    <div class="wf-full-item">
+      <div class="wffi-line"><div class="wffi-circle done"><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="#27AE60" stroke-width="2.5"><polyline points="2,6 5,9 10,3"/></svg></div><div class="wffi-vert"></div></div>
+      <div class="wffi-body">
+        <div class="wffi-name">Tra cứu CIC <span class="badge-done">Hoàn thành</span></div>
+        <div class="wffi-desc">CIC nhóm 1 · điểm bureau 712/850 · điểm rủi ro nội bộ 28/100 · không nợ quá hạn.</div>
+      </div>
+    </div>
+
+    <!-- 8 -->
+    <div class="wf-full-item">
+      <div class="wffi-line"><div class="wffi-circle done"><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="#27AE60" stroke-width="2.5"><polyline points="2,6 5,9 10,3"/></svg></div><div class="wffi-vert"></div></div>
+      <div class="wffi-body">
+        <div class="wffi-name">Chấm điểm rủi ro <span class="badge-done">Hoàn thành</span></div>
+        <div class="wffi-desc">Score = CIC×30 + DTI×25 + LTV×20 + Bureau×15 + Stability×10 → <strong style="color:var(--green);">28/100</strong> · vùng An toàn.</div>
+      </div>
+    </div>
+
+    <!-- 9 -->
+    <div class="wf-full-item">
+      <div class="wffi-line">
+        <div class="wffi-circle done" style="background:linear-gradient(135deg,#D1FAE5,#A7F3D0);border-color:#34D399;">
+          <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="#059669" stroke-width="2.5"><polyline points="2,6 5,9 10,3"/></svg>
+        </div>
+        <div class="wffi-vert" style="background:linear-gradient(to bottom,#34D399,#E8F8EF);"></div>
+      </div>
+      <div class="wffi-body">
+        <div class="wffi-name">Phân loại quyết định <span style="background:linear-gradient(90deg,#D1FAE5,#A7F3D0);color:#065F46;border:1px solid #34D399;border-radius:4px;padding:1px 8px;font-size:10px;font-weight:700;">✓ Auto-Approve</span></div>
+        <div class="wffi-desc" style="color:var(--green);font-weight:600;">Risk 28 → Phê duyệt tự động · tất cả điều kiện đạt · không cần HITL.</div>
+      </div>
+    </div>
+
+    <!-- 10 -->
+    <div class="wf-full-item">
+      <div class="wffi-line"><div class="wffi-circle done"><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="#27AE60" stroke-width="2.5"><polyline points="2,6 5,9 10,3"/></svg></div><div class="wffi-vert"></div></div>
+      <div class="wffi-body">
+        <div class="wffi-name">Cập nhật kết quả <span class="badge-done">Hoàn thành</span></div>
+        <div class="wffi-desc">Điều kiện phê duyệt ghi nhận. Hạn mức 2.5 tỷ · lãi suất sơ bộ xác nhận · sẵn sàng ký hợp đồng.</div>
+      </div>
+    </div>
+
+    <!-- 11 -->
+    <div class="wf-full-item">
+      <div class="wffi-line"><div class="wffi-circle wait"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="2"><circle cx="12" cy="12" r="9"/></svg></div></div>
+      <div class="wffi-body">
+        <div class="wffi-name wffi-name muted">Ký hợp đồng &amp; Giải ngân <span class="badge-wait">Chờ</span></div>
+        <div class="wffi-desc" style="color:#bbb;">Chờ khách hàng xác nhận lịch ký và thông tin tài sản bên nhận tiền.</div>
+      </div>
+    </div>
+
+  </div>
+  </div><!-- /lqc-tab-workflow -->
+
+  <div id="lqc-tab-aiphan" style="display:none;">
+
+  <!-- Report bar -->
+  <div class="aip-report-bar">
+    <div class="aip-report-left">
+      <div class="aip-report-tag">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#27AE60" stroke-width="2"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        Báo cáo phân tích tín dụng · APP–2026–1003
+      </div>
+      <div class="aip-report-title">Vay mua nhà dự án liên kết · Vinhomes Ocean Park 3 · 2.500.000.000 đ · 240 tháng</div>
+      <div class="aip-report-desc">Tóm tắt điều hành, năng lực trả nợ, Reasoning + References, OCR tài liệu · 3 lượt phân tích · cập nhật 16:25 18/05/2026</div>
+    </div>
+    <button class="btn-phan-tich-lai" style="background:var(--green);">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>
+      Phân tích lại
+    </button>
+  </div>
+
+  <!-- KPI -->
+  <div class="aip-kpi-row">
+    <div class="aip-kpi" style="border-color:#A7F3D0;background:#F0FDF7;">
+      <div class="aip-kpi-label"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#27AE60" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg> THROUGHPUT HÔM NAY</div>
+      <div class="aip-kpi-val" style="color:var(--green);">28 hồ sơ</div>
+      <div class="aip-kpi-sub">+8% so với hôm qua</div>
+    </div>
+    <div class="aip-kpi" style="border-color:#A7F3D0;background:#F0FDF7;">
+      <div class="aip-kpi-label"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#27AE60" stroke-width="2"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> SLA HIT RATE 7D</div>
+      <div class="aip-kpi-val" style="color:var(--green);">94%</div>
+      <div class="aip-kpi-sub">Mục tiêu ≥ 90%</div>
+    </div>
+    <div class="aip-kpi" style="border-color:#A7F3D0;background:#F0FDF7;">
+      <div class="aip-kpi-label"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#27AE60" stroke-width="2"><circle cx="12" cy="12" r="9"/><polyline points="12,7 12,12 15,14"/></svg> LATENCY TRUNG BÌNH</div>
+      <div class="aip-kpi-val">4.2s</div>
+      <div class="aip-kpi-sub">Pipeline 6 bước · nhanh</div>
+    </div>
+    <div class="aip-kpi" style="border-color:#A7F3D0;background:#F0FDF7;">
+      <div class="aip-kpi-label"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#27AE60" stroke-width="2"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> KẾT QUẢ AI</div>
+      <div style="font-size:14px;font-weight:800;color:var(--green);margin-top:4px;">Phê duyệt tự động</div>
+      <div class="aip-kpi-sub">Không cần HITL</div>
+    </div>
+  </div>
+
+  <!-- Tóm tắt điều hành — xanh -->
+  <div style="background:linear-gradient(135deg,#ECFDF5,#D1FAE5 50%,#A7F3D0 100%);border:1.5px solid #6EE7B7;border-radius:12px;padding:16px 20px;margin-bottom:14px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+      <div style="font-size:13px;font-weight:800;color:#065F46;display:flex;align-items:center;gap:6px;">
+        <div style="width:22px;height:22px;border-radius:6px;background:#D1FAE5;border:1.5px solid #34D399;display:flex;align-items:center;justify-content:center;">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="#059669" stroke-width="2.5"><polyline points="2,6 5,9 10,3"/></svg>
+        </div>
+        TÓM TẮT ĐIỀU HÀNH
+      </div>
+      <div style="font-size:11px;font-weight:700;color:var(--green);">✓ Phê duyệt tự động</div>
+    </div>
+    <div style="font-size:16px;font-weight:900;color:#065F46;margin-bottom:6px;">Hồ sơ đủ điều kiện · Phê duyệt tự động thành công</div>
+    <div style="font-size:12px;color:#047857;margin-bottom:12px;">Luồng Auto-Approve · Tất cả điều kiện đạt · độ tin cậy 96% · điểm rủi ro tổng hợp 28/100</div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px;">
+      <div style="background:rgba(255,255,255,0.7);border-radius:8px;padding:10px 12px;border:1px solid rgba(110,231,183,0.4);">
+        <div style="font-size:9px;font-weight:700;color:#047857;text-transform:uppercase;letter-spacing:0.3px;margin-bottom:3px;">Hồ sơ</div>
+        <div style="font-size:12px;font-weight:700;color:var(--green);">Phê duyệt tự động</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.7);border-radius:8px;padding:10px 12px;border:1px solid rgba(110,231,183,0.4);">
+        <div style="font-size:9px;font-weight:700;color:#047857;text-transform:uppercase;letter-spacing:0.3px;margin-bottom:3px;">Tài liệu đạt</div>
+        <div style="font-size:12px;font-weight:700;color:var(--green);">4/4 hợp lệ</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.7);border-radius:8px;padding:10px 12px;border:1px solid rgba(110,231,183,0.4);">
+        <div style="font-size:9px;font-weight:700;color:#047857;text-transform:uppercase;letter-spacing:0.3px;margin-bottom:3px;">Cần xem lại</div>
+        <div style="font-size:12px;font-weight:700;color:var(--green);">Không có cảnh báo</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.7);border-radius:8px;padding:10px 12px;border:1px solid rgba(110,231,183,0.4);">
+        <div style="font-size:9px;font-weight:700;color:#047857;text-transform:uppercase;letter-spacing:0.3px;margin-bottom:3px;">Trọng tâm</div>
+        <div style="font-size:12px;font-weight:700;color:var(--green);">Sẵn sàng ký HĐ</div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <input class="aip-exec-input" type="text" placeholder="Ghi chú của chuyên viên (tuỳ chọn)…" style="border-color:#6EE7B7;">
+      <button class="btn-pheduyet">👍 Xác nhận phê duyệt</button>
+      <button class="btn-chuyentd" onclick="alert('Chuyển sang luồng thẩm định thủ công')">🔍 Xem xét lại</button>
+    </div>
+  </div>
+
+  <!-- 3 charts -->
+  <div class="aip-charts-row">
+    <!-- Gauge xanh -->
+    <div class="aip-chart-card" style="border-color:#A7F3D0;background:#FAFFFE;">
+      <div class="aip-chart-title">Điểm rủi ro tổng hợp</div>
+      <div class="aip-chart-desc">Calibrated bởi mô hình SHB-Risk-v3.2 · confidence 96%</div>
+      <div class="gauge-wrap">
+        <svg width="180" height="100" viewBox="0 0 180 100">
+          <defs>
+            <linearGradient id="gaugeGradGreen" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stop-color="#27AE60"/>
+              <stop offset="50%" stop-color="#F59E0B"/>
+              <stop offset="100%" stop-color="#EF4444"/>
+            </linearGradient>
+          </defs>
+          <path d="M20,85 A70,70 0 0,1 160,85" fill="none" stroke="#F0F2F8" stroke-width="14" stroke-linecap="round"/>
+          <!-- Fill ~28% (green zone) -->
+          <path d="M20,85 A70,70 0 0,1 160,85" fill="none" stroke="url(#gaugeGradGreen)" stroke-width="14" stroke-linecap="round"
+            stroke-dasharray="220" stroke-dashoffset="158"/>
+          <!-- Needle pointing left/safe zone -->
+          <line x1="90" y1="85" x2="118" y2="34" stroke="#065F46" stroke-width="2.5" stroke-linecap="round"/>
+          <circle cx="90" cy="85" r="5" fill="#065F46"/>
+          <text x="90" y="72" text-anchor="middle" font-size="22" font-weight="900" fill="#065F46" font-family="Be Vietnam Pro">28</text>
+          <text x="90" y="82" text-anchor="middle" font-size="10" fill="#aaa" font-family="Be Vietnam Pro">/ 100</text>
+        </svg>
+        <div class="gauge-labels">
+          <span class="gauge-label" style="color:var(--green);font-weight:700;">0–40 An toàn ✓</span>
+          <span class="gauge-label">40–70 Theo dõi</span>
+          <span class="gauge-label">70+ Cao</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Radar -->
+    <div class="aip-chart-card" style="border-color:#A7F3D0;background:#FAFFFE;">
+      <div class="aip-chart-title">Bản đồ năng lực hồ sơ</div>
+      <div class="aip-chart-desc">So sánh 6 trục đánh giá với benchmark trung bình tệp khách hàng cùng phân khúc.</div>
+      <div class="radar-wrap">
+        <svg width="200" height="160" viewBox="0 0 200 160">
+          <text x="100" y="12" text-anchor="middle" font-size="9" fill="#aaa" font-family="Be Vietnam Pro">Năng lực trả nợ</text>
+          <text x="185" y="55" text-anchor="start" font-size="9" fill="#aaa" font-family="Be Vietnam Pro">Tài sản BĐ</text>
+          <text x="170" y="130" text-anchor="start" font-size="9" fill="#aaa" font-family="Be Vietnam Pro">Áp lực trả góp</text>
+          <text x="100" y="155" text-anchor="middle" font-size="9" fill="#aaa" font-family="Be Vietnam Pro">Lịch sử CIC</text>
+          <text x="16" y="130" text-anchor="start" font-size="9" fill="#aaa" font-family="Be Vietnam Pro">Ổn định thu nhập</text>
+          <text x="5" y="55" text-anchor="start" font-size="9" fill="#aaa" font-family="Be Vietnam Pro">Hành vi GD</text>
+          <polygon points="100,25 155,57 155,103 100,135 45,103 45,57" fill="none" stroke="#E8ECF4" stroke-width="1"/>
+          <polygon points="100,45 140,67 140,93 100,115 60,93 60,67" fill="none" stroke="#E8ECF4" stroke-width="1"/>
+          <polygon points="100,65 125,78 125,82 100,95 75,82 75,78" fill="none" stroke="#E8ECF4" stroke-width="1"/>
+          <line x1="100" y1="25" x2="100" y2="135" stroke="#E8ECF4" stroke-width="1"/>
+          <line x1="45" y1="57" x2="155" y2="103" stroke="#E8ECF4" stroke-width="1"/>
+          <line x1="155" y1="57" x2="45" y2="103" stroke="#E8ECF4" stroke-width="1"/>
+          <!-- Strong profile — thu nhập ổn định, CIC tốt, LTV tốt -->
+          <polygon points="100,35 148,63 145,97 100,128 55,97 52,63"
+            fill="rgba(39,174,96,0.15)" stroke="#27AE60" stroke-width="1.5"/>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Donut -->
+    <div class="aip-chart-card" style="border-color:#A7F3D0;background:#FAFFFE;">
+      <div class="aip-chart-title">Phân bổ luồng xử lý 7 ngày</div>
+      <div class="aip-chart-desc">Tỷ lệ định tuyến theo verdict trên toàn bộ hồ sơ chạy qua pipeline.</div>
+      <div style="display:flex;align-items:center;gap:14px;">
+        <svg width="90" height="90" viewBox="0 0 90 90">
+          <circle cx="45" cy="45" r="34" fill="none" stroke="#F0F2F8" stroke-width="14"/>
+          <circle cx="45" cy="45" r="34" fill="none" stroke="#27AE60" stroke-width="14" stroke-dasharray="81 213" stroke-dashoffset="0"/>
+          <circle cx="45" cy="45" r="34" fill="none" stroke="#F26522" stroke-width="14" stroke-dasharray="57 213" stroke-dashoffset="-81"/>
+          <circle cx="45" cy="45" r="34" fill="none" stroke="#2B4D9B" stroke-width="14" stroke-dasharray="47 213" stroke-dashoffset="-138"/>
+          <circle cx="45" cy="45" r="34" fill="none" stroke="#EF4444" stroke-width="14" stroke-dasharray="28 213" stroke-dashoffset="-185"/>
+        </svg>
+        <div style="display:flex;flex-direction:column;gap:5px;">
+          <div style="display:flex;align-items:center;gap:6px;font-size:11px;"><div style="width:10px;height:10px;background:#27AE60;border-radius:2px;flex-shrink:0;"></div>Tự động <strong style="margin-left:auto;padding-left:8px;">38%</strong></div>
+          <div style="display:flex;align-items:center;gap:6px;font-size:11px;"><div style="width:10px;height:10px;background:#F26522;border-radius:2px;flex-shrink:0;"></div>Bổ sung <strong style="margin-left:auto;padding-left:8px;">27%</strong></div>
+          <div style="display:flex;align-items:center;gap:6px;font-size:11px;"><div style="width:10px;height:10px;background:#2B4D9B;border-radius:2px;flex-shrink:0;"></div>Chuyên viên <strong style="margin-left:auto;padding-left:8px;">22%</strong></div>
+          <div style="display:flex;align-items:center;gap:6px;font-size:11px;"><div style="width:10px;height:10px;background:#EF4444;border-radius:2px;flex-shrink:0;"></div>Từ chối <strong style="margin-left:auto;padding-left:8px;">13%</strong></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Rủi ro 30 ngày -->
+  <div class="aip-trend-card" style="margin-bottom:14px;border-color:#A7F3D0;background:#FAFFFE;">
+    <div class="aip-chart-title">Rủi ro 30 ngày qua</div>
+    <div class="aip-chart-desc">Theo dõi điểm rủi ro hồ sơ trong 30 ngày liền kề — điểm thấp và ổn định.</div>
+    <div style="height:50px;"><svg width="100%" height="50" viewBox="0 0 700 50" preserveAspectRatio="none">
+      <path d="M0,38 C100,36 200,34 300,33 C400,32 500,31 600,30 C650,30 680,29 700,29" fill="rgba(39,174,96,0.08)" stroke="none"/>
+      <path d="M0,38 C100,36 200,34 300,33 C400,32 500,31 600,30 C650,30 680,29 700,29" fill="none" stroke="#27AE60" stroke-width="2"/>
+    </svg></div>
+  </div>
+
+  <!-- Chuỗi suy luận -->
+  <div class="aip-chain-box" style="margin-bottom:14px;border-color:#A7F3D0;">
+    <div class="aip-chain-header" style="background:#F0FDF7;">
+      <div class="aip-chain-title">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#27AE60" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+        Chuỗi suy luận AI (3 bước)
+      </div>
+      <div class="aip-chain-sub">Chain-of-thought · mỗi bước gắn citation tới chính sách áp dụng · tất cả pass</div>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+  </div>
+
+  <!-- Xu hướng + Năng lực -->
+  <div class="aip-bottom-row">
+    <div class="aip-trend-card" style="border-color:#A7F3D0;background:#FAFFFE;">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:4px;">
+        <div>
+          <div class="aip-trend-title">Xu hướng rủi ro qua các lần phân tích</div>
+          <div style="font-size:11px;color:var(--muted);margin-bottom:10px;">Điểm giảm đều qua mỗi lần AI đọc lại — hồ sơ ngày càng tốt hơn.</div>
+        </div>
+        <div style="text-align:right;flex-shrink:0;margin-left:12px;">
+          <div class="aip-latest-badge" style="background:var(--green);">GẦN NHẤT</div>
+          <div class="aip-score-big" style="color:var(--green);">28/100</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:flex-end;gap:20px;height:70px;padding:0 10px;margin-bottom:8px;position:relative;">
+        <div style="display:flex;flex-direction:column;align-items:center;flex:1;">
+          <div style="font-size:11px;font-weight:700;margin-bottom:4px;color:#555;">38</div>
+          <div style="width:100%;background:#F59E0B;border-radius:4px 4px 0 0;height:38px;"></div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;flex:1;">
+          <div style="font-size:11px;font-weight:700;margin-bottom:4px;color:#555;">33</div>
+          <div style="width:100%;background:#84CC16;border-radius:4px 4px 0 0;height:33px;"></div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;flex:1;">
+          <div style="font-size:11px;font-weight:700;margin-bottom:4px;color:var(--green);">28</div>
+          <div style="width:100%;background:#27AE60;border-radius:4px 4px 0 0;height:28px;"></div>
+        </div>
+        <div style="position:absolute;bottom:0;left:0;right:0;border-top:1px solid #F0F2F8;"></div>
+      </div>
+      <div style="display:flex;gap:14px;">
+        <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--muted);"><div style="width:8px;height:8px;background:var(--green);border-radius:50%;"></div>3 lần phân tích</div>
+        <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--muted);"><div style="width:16px;height:2px;background:#F59E0B;"></div>Ngưỡng 40: tự động</div>
+        <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--muted);"><div style="width:16px;height:2px;background:var(--green);"></div>Vùng an toàn</div>
+      </div>
+    </div>
+
+    <div class="aip-trend-card" style="border-color:#A7F3D0;background:#FAFFFE;">
+      <div class="aip-trend-title" style="margin-bottom:4px;">Năng lực trả nợ</div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:12px;">Tất cả chỉ số trong vùng an toàn · hồ sơ mạnh.</div>
+      <div class="capacity-item">
+        <div class="cap-header"><span class="cap-label">Năng lực trả nợ (DTI)</span><span class="cap-val" style="color:var(--green);">20%</span></div>
+        <div class="cap-desc">Tổng nghĩa vụ sau vay so với thu nhập 80tr/tháng. Ổn định và đều.</div>
+        <div class="cap-bar"><div class="cap-fill" style="width:20%;background:#27AE60;"></div></div>
+      </div>
+      <div class="capacity-item">
+        <div class="cap-header"><span class="cap-label">Tài sản bảo đảm (LTV)</span><span class="cap-val" style="color:var(--green);">72%</span></div>
+        <div class="cap-desc">Khoản vay so với giá trị căn hộ A12-1503 Vinhomes Ocean Park 3.</div>
+        <div class="cap-bar"><div class="cap-fill" style="width:72%;background:#27AE60;"></div></div>
+      </div>
+      <div class="capacity-item">
+        <div class="cap-header"><span class="cap-label">Áp lực trả góp (PTI)</span><span class="cap-val" style="color:var(--green);">18%</span></div>
+        <div class="cap-desc">Khoản trả góp hàng tháng ước tính so với thu nhập. Rất thoải mái.</div>
+        <div class="cap-bar"><div class="cap-fill" style="width:18%;background:#27AE60;"></div></div>
+      </div>
+      <div class="capacity-item">
+        <div class="cap-header"><span class="cap-label">Lịch sử tín dụng</span><span class="cap-val" style="color:var(--green);">Nhóm 1 · 712</span></div>
+        <div class="cap-desc">CIC nhóm 1 · điểm bureau 712/850 · không nợ quá hạn.</div>
+        <div class="cap-bar"><div class="cap-fill" style="width:84%;background:#27AE60;"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reasoning + References -->
+  <div class="aip-reasoning-box" style="border-color:#A7F3D0;background:#FAFFFE;">
+    <div class="aip-reasoning-title">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#27AE60" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      Reasoning + References
+    </div>
+    <div class="aip-reasoning-desc">Tất cả nhận định được gắn evidence tài liệu và quy định · không có điểm chặn nào được ghi nhận.</div>
+    <div class="aip-rr-grid">
+      <div class="aip-luangiai" style="background:#F0FDF7;border:1px solid #A7F3D0;">
+        <div class="aip-luan-title" style="color:#065F46;">Luận giải theo hồ sơ</div>
+        <div class="aip-luan-item"><div class="aip-luan-dot" style="background:var(--green);"></div>Định danh, cư trú, CIC nhóm 1 và blacklist không ghi nhận điểm chặn chính.</div>
+        <div class="aip-luan-item"><div class="aip-luan-dot" style="background:var(--green);"></div>Thu nhập 80.000.000 VND/tháng từ FPT Software — ổn định, xác minh qua sao kê + HĐ lao động.</div>
+        <div class="aip-luan-item"><div class="aip-luan-dot" style="background:var(--green);"></div>DTI 20% và PTI 18% nằm trong vùng phê duyệt tự động theo chính sách SHB (&lt;35%).</div>
+        <div class="aip-luan-item"><div class="aip-luan-dot" style="background:var(--green);"></div>Dự án Vinhomes Ocean Park 3 đã được SHB thẩm định pháp lý — không cần xác nhận CDT.</div>
+        <div class="aip-luan-item"><div class="aip-luan-dot" style="background:var(--green);"></div>4/4 giấy tờ bắt buộc hợp lệ — đủ căn cứ AI tự phê duyệt không cần HITL.</div>
+      </div>
+      <div class="aip-ref" style="background:#F0FDF7;border:1px solid #A7F3D0;">
+        <div class="aip-ref-title" style="color:#065F46;">References</div>
+        <div class="aip-ref-item"><div class="aip-ref-dot" style="background:var(--green);"></div>Chính sách sản phẩm: kiểm tra định danh, năng lực trả nợ, tài sản bảo đảm và nhóm tài liệu bắt buộc.</div>
+        <div class="aip-ref-item"><div class="aip-ref-dot" style="background:var(--green);"></div>Quy tắc phân luồng: hồ sơ sạch + đủ giấy tờ + DTI &lt;35% → Auto-Approve, không cần HITL.</div>
+        <div class="aip-ref-item"><div class="aip-ref-dot" style="background:var(--green);"></div>Dự án liên kết SHB: pháp lý Vinhomes Ocean Park 3 đã được thẩm định — tài sản bảo đảm hợp lệ.</div>
+        <div class="aip-ref-item"><div class="aip-ref-dot" style="background:var(--green);"></div>Luồng Auto-Approve: Score &lt;40 + CIC nhóm 1 + đủ checklist → Phê duyệt tự động.</div>
+        <div class="aip-ref-item"><div class="aip-ref-dot" style="background:var(--green);"></div>Checklist hồ sơ bắt buộc — tất cả tài liệu đã tách trách nhiệm rõ ràng giữa KH và SHB/CDT.</div>
+      </div>
+    </div>
+
+    <!-- 4 cell checklist — all green -->
+    <div class="aip-4grid">
+      <div class="aip-4cell" style="background:#F0FDF7;border-color:#A7F3D0;">
+        <div class="aip-4cell-header"><span class="aip-4cell-title">Kiểm tra chính sách</span><span class="aip-4cell-badge-ok">Đạt</span></div>
+        <div class="aip-4cell-desc">DTI 20% · PTI 18% · LTV 72% · tất cả trong ngưỡng cho phép phê duyệt tự động.</div>
+      </div>
+      <div class="aip-4cell" style="background:#F0FDF7;border-color:#A7F3D0;">
+        <div class="aip-4cell-header"><span class="aip-4cell-title">Checklist tài liệu</span><span class="aip-4cell-badge-ok">Đạt</span></div>
+        <div class="aip-4cell-desc">4/4 tài liệu bắt buộc hợp lệ. Không cần bổ sung thêm.</div>
+      </div>
+      <div class="aip-4cell" style="background:#F0FDF7;border-color:#A7F3D0;">
+        <div class="aip-4cell-header"><span class="aip-4cell-title">Bản đồ rủi ro</span><span class="aip-4cell-badge-ok">Đạt</span></div>
+        <div class="aip-4cell-desc">Điểm rủi ro 28/100 · vùng An toàn · CIC nhóm 1 · bureau 712/850.</div>
+      </div>
+      <div class="aip-4cell" style="background:#F0FDF7;border-color:#A7F3D0;">
+        <div class="aip-4cell-header"><span class="aip-4cell-title">Kho tri thức</span><span class="aip-4cell-badge-ok">Đạt</span></div>
+        <div class="aip-4cell-desc">Luồng chính sách Auto-Approve áp dụng đúng. Dự án Vinhomes đã thẩm định.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- OCR -->
+  <div class="aip-ocr-box" style="border-color:#A7F3D0;background:#FAFFFE;">
+    <div class="aip-ocr-title">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#27AE60" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/></svg>
+      Phân tích tài liệu &amp; OCR
+    </div>
+    <div class="aip-ocr-desc">Đã xử lý 4 tài liệu: CCCD eKYC (khớp định danh), sao kê 6 tháng (thu nhập ổn định 80tr/tháng), hợp đồng lao động (FPT Software – không kỳ hạn), hợp đồng mua bán căn hộ A12-1503 (hợp lệ). Tất cả trường OCR khớp hồ sơ — không phát hiện bất thường.</div>
+  </div>
+
+  <!-- Lịch sử phân tích -->
+  <div class="aip-history-box" style="border-color:#A7F3D0;">
+    <div class="aip-history-header" style="background:#F0FDF7;">
+      <div class="aip-history-title">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#27AE60" stroke-width="2"><circle cx="12" cy="12" r="9"/><polyline points="12,7 12,12 15,14"/></svg>
+        Lịch sử phân tích (3)
+      </div>
+    </div>
+    <div class="aip-hist-row">
+      <div class="aip-hist-time">16:25 18/05/2026</div>
+      <div class="aip-hist-type ht-auto">TỰ ĐỘNG</div>
+      <div class="aip-hist-desc">Luồng Auto-Approve · Tất cả điều kiện đạt · điểm 28/100 · không cần HITL</div>
+      <div class="aip-hist-verdict hv-ok">✓ Phê duyệt tự động</div>
+    </div>
+    <div class="aip-hist-row">
+      <div class="aip-hist-time">16:00 18/05/2026</div>
+      <div class="aip-hist-type ht-doc">TÀI LIỆU</div>
+      <div class="aip-hist-desc">OCR hoàn tất 4/4 tài liệu · điểm 33/100 · tất cả trường khớp</div>
+      <div class="aip-hist-verdict hv-ok">✓ Phê duyệt tự động</div>
+    </div>
+    <div class="aip-hist-row">
+      <div class="aip-hist-time">15:40 16/05/2026</div>
+      <div class="aip-hist-type ht-income">THU NHẬP</div>
+      <div class="aip-hist-desc">Luồng tự động · Thu nhập 80tr ổn định · DTI 20% trong ngưỡng · điểm 38/100</div>
+      <div class="aip-hist-verdict hv-ok">✓ Phê duyệt tự động</div>
+    </div>
+  </div>
+
+  </div><!-- /lqc-tab-aiphan -->
+
+  <div id="lqc-tab-tailieus" style="display:none;"><div class="detail-card" style="padding:40px;text-align:center;color:var(--muted);font-size:13px;">4/4 tài liệu hợp lệ đã ghi nhận</div></div>
+  <div id="lqc-tab-hosogoc" style="display:none;"><div class="detail-card" style="padding:40px;text-align:center;color:var(--muted);font-size:13px;">Hồ sơ gốc từ Customer App</div></div>
+  <div id="lqc-tab-lesson" style="display:none;"><div class="detail-card" style="padding:40px;text-align:center;color:var(--muted);font-size:13px;">Lesson learned chưa có dữ liệu</div></div>
+  <div id="lqc-tab-traodoi" style="display:none;"><div class="detail-card" style="padding:40px;text-align:center;color:var(--muted);font-size:13px;">Trao đổi nội bộ</div></div>
+  <div id="lqc-tab-timeline" style="display:none;"><div class="detail-card" style="padding:40px;text-align:center;color:var(--muted);font-size:13px;">Timeline 5 sự kiện</div></div>
+
+</div><!-- /detail-body -->
+</div><!-- /screen-lqc-detail -->
+
+<script>
+function switchTabLQC(el, tabId) {
+  el.closest('.detail-tabs').querySelectorAll('.dtab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  ['lqc-tab-tongquan','lqc-tab-workflow','lqc-tab-tailieus','lqc-tab-hosogoc','lqc-tab-lesson','lqc-tab-aiphan','lqc-tab-traodoi','lqc-tab-timeline'].forEach(id => {
+    const p = document.getElementById(id);
+    if (p) p.style.display = 'none';
+  });
+  const panel = document.getElementById(tabId);
+  if (panel) panel.style.display = 'block';
+}
+</script>
+
+</body>
+</html>
