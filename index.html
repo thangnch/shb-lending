@@ -3562,5 +3562,276 @@
   }
 </script>
 
+
+<!-- ===== CREDIX AGENT CHATBOT BUBBLE ===== -->
+<style>
+.chatbot-wrap{position:fixed;bottom:28px;right:28px;z-index:9999;display:flex;flex-direction:column;align-items:flex-end;gap:12px;font-family:'Be Vietnam Pro',sans-serif;}
+.chatbot-bubble{background:#fff;border-radius:18px 18px 4px 18px;padding:16px 18px;max-width:300px;box-shadow:0 8px 32px rgba(0,0,0,0.14),0 2px 8px rgba(0,0,0,0.06);position:relative;animation:bubbleIn 0.4s cubic-bezier(0.34,1.56,0.64,1) both;cursor:pointer;transition:box-shadow 0.2s;}
+.chatbot-bubble:hover{box-shadow:0 12px 40px rgba(0,0,0,0.18);}
+@keyframes bubbleIn{from{opacity:0;transform:scale(0.7) translateY(20px);transform-origin:bottom right;}to{opacity:1;transform:scale(1) translateY(0);}}
+.cb-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.cb-agent-name{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:800;color:#F26522;}
+.cb-avatar{width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,#F26522,#f59c1a);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.cb-time{font-size:11px;color:#aaa;font-weight:500;}
+.cb-text{font-size:14px;color:#1A1A2E;line-height:1.55;font-weight:400;}
+.cb-close{position:absolute;top:-8px;right:-8px;width:22px;height:22px;border-radius:50%;background:#E8ECF4;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#888;font-size:13px;line-height:1;transition:background 0.15s;}
+.cb-close:hover{background:#d1d5db;color:#333;}
+.cb-photo-wrap{position:relative;width:56px;height:56px;cursor:pointer;}
+.cb-online{position:absolute;top:2px;right:2px;width:10px;height:10px;background:#27AE60;border-radius:50%;border:2px solid #fff;animation:pulse 2s infinite;}
+.cb-photo-svg{width:56px;height:56px;border-radius:50%;box-shadow:0 4px 16px rgba(0,0,0,0.15);border:2.5px solid #fff;background:linear-gradient(135deg,#1A2B5F 0%,#2B4D9B 60%,#F26522 100%);display:flex;align-items:flex-end;justify-content:center;overflow:hidden;}
+.cb-photo-badge{position:absolute;bottom:-2px;right:-2px;width:20px;height:20px;border-radius:50%;background:#F26522;border:2px solid #fff;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:900;color:#fff;}
+
+/* CHAT WINDOW */
+.chat-window{display:none;position:fixed;bottom:28px;right:28px;width:380px;max-height:90vh;background:#fff;border-radius:20px;box-shadow:0 20px 60px rgba(0,0,0,0.18),0 4px 16px rgba(0,0,0,0.08);z-index:10000;flex-direction:column;overflow:hidden;font-family:'Be Vietnam Pro',sans-serif;}
+.chat-window.open{display:flex;animation:slideUp 0.3s cubic-bezier(0.34,1.4,0.64,1) both;}
+@keyframes slideUp{from{opacity:0;transform:translateY(30px) scale(0.95);transform-origin:bottom right;}to{opacity:1;transform:translateY(0) scale(1);}}
+.chat-header{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid #F0F2F8;background:#fff;border-radius:20px 20px 0 0;}
+.chat-header-avatar{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#1A2B5F 0%,#2B4D9B 55%,#F26522 100%);display:flex;align-items:flex-end;justify-content:center;overflow:hidden;flex-shrink:0;position:relative;border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.12);}
+.chat-header-online{position:absolute;bottom:1px;right:1px;width:10px;height:10px;background:#27AE60;border-radius:50%;border:2px solid #fff;animation:pulse 2s infinite;}
+.chat-header-info{flex:1;}
+.chat-header-name{font-size:14px;font-weight:800;color:#1A1A2E;display:flex;align-items:center;gap:6px;margin-bottom:1px;}
+.chat-header-name .online-dot{width:8px;height:8px;background:#27AE60;border-radius:50%;display:inline-block;animation:pulse 2s infinite;}
+.chat-header-sub{font-size:11px;color:#888;}
+.chat-header-actions{display:flex;align-items:center;gap:6px;}
+.chat-hdr-btn{width:30px;height:30px;border-radius:8px;border:none;background:#F4F6FA;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#888;transition:background 0.15s;}
+.chat-hdr-btn:hover{background:#E8ECF4;color:#333;}
+.chat-accordion{margin:10px 12px 0;border:1.5px solid #F0F2F8;border-radius:10px;overflow:hidden;}
+.chat-accordion-header{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:#F8F9FC;cursor:pointer;font-size:13px;font-weight:700;color:#1A1A2E;user-select:none;}
+.chat-accordion-header:hover{background:#F0F2F8;}
+.chat-accordion-chevron{transition:transform 0.2s;color:#aaa;}
+.chat-accordion-chevron.open{transform:rotate(180deg);}
+.chat-messages{flex:1;overflow-y:auto;padding:14px 12px;display:flex;flex-direction:column;gap:14px;min-height:200px;max-height:320px;background:#FAFBFF;}
+.chat-msg{display:flex;align-items:flex-start;gap:10px;}
+.chat-msg-avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#1A2B5F,#2B4D9B);display:flex;align-items:flex-end;justify-content:center;overflow:hidden;flex-shrink:0;}
+.chat-msg-bubble{background:#fff;border-radius:4px 16px 16px 16px;padding:12px 14px;font-size:14px;color:#1A1A2E;line-height:1.55;max-width:260px;box-shadow:0 1px 4px rgba(0,0,0,0.07);}
+.chat-quick-replies{padding:10px 12px 6px;display:flex;flex-wrap:wrap;gap:7px;border-top:1px solid #F0F2F8;background:#fff;}
+.chat-qr-btn{padding:7px 13px;border-radius:999px;border:1.5px solid #E8ECF4;background:#fff;font-family:'Be Vietnam Pro',sans-serif;font-size:12px;font-weight:500;color:#444;cursor:pointer;transition:border-color 0.15s,background 0.15s;white-space:nowrap;}
+.chat-qr-btn:hover{border-color:#F26522;background:#FFF8F3;color:#F26522;}
+.chat-input-area{display:flex;align-items:center;gap:8px;padding:10px 12px 14px;border-top:1px solid #F0F2F8;background:#fff;border-radius:0 0 20px 20px;}
+.chat-input{flex:1;border:none;outline:none;font-family:'Be Vietnam Pro',sans-serif;font-size:13px;color:#555;background:transparent;}
+.chat-input::placeholder{color:#bbb;}
+.chat-send-btn{width:36px;height:36px;border-radius:9px;background:#F26522;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background 0.2s,transform 0.15s;}
+.chat-send-btn:hover{background:#d9541a;transform:scale(1.05);}
+</style>
+
+<!-- Chat window -->
+<div class="chat-window" id="chat-window">
+  <div class="chat-header">
+    <div class="chat-header-avatar">
+      <svg width="32" height="36" viewBox="0 0 32 36" fill="none"><circle cx="16" cy="11" r="8" fill="rgba(255,255,255,0.3)"/><path d="M0 34c0-9 7-14 16-14s16 5 16 14" fill="rgba(255,255,255,0.2)"/></svg>
+      <div class="chat-header-online"></div>
+    </div>
+    <div class="chat-header-info">
+      <div class="chat-header-name">CREDIX Agent <span class="online-dot"></span></div>
+      <div class="chat-header-sub">Giấy tờ cần bổ sung — 1/3 đã hợp lệ</div>
+    </div>
+    <div class="chat-header-actions">
+      <button class="chat-hdr-btn" title="Di chuyển"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="5 9 2 12 5 15"/><polyline points="9 5 12 2 15 5"/><polyline points="15 19 12 22 9 19"/><polyline points="19 9 22 12 19 15"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="12" y1="2" x2="12" y2="22"/></svg></button>
+      <button class="chat-hdr-btn" onclick="closeChat()" title="Đóng"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+  </div>
+  <div class="chat-accordion">
+    <div class="chat-accordion-header" onclick="this.querySelector('.chat-accordion-chevron').classList.toggle('open')">
+      <span style="display:flex;align-items:center;gap:7px;"><span style="color:#F26522;font-size:14px;">✦</span> Thông tin hỗ trợ</span>
+      <svg class="chat-accordion-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+  </div>
+  <div class="chat-messages" id="chat-messages">
+    <div class="chat-msg">
+      <div class="chat-msg-avatar"><svg width="24" height="28" viewBox="0 0 24 28" fill="none"><circle cx="12" cy="8" r="6" fill="rgba(255,255,255,0.3)"/><path d="M0 26c0-7 5-10 12-10s12 3 12 10" fill="rgba(255,255,255,0.2)"/></svg></div>
+      <div class="chat-msg-bubble">Mình đang sắp xếp giấy tờ theo từng bước để anh/chị biết giấy tờ nào đã hợp lệ và giấy tờ nào cần bổ sung.</div>
+    </div>
+    <div class="chat-msg">
+      <div class="chat-msg-avatar"><svg width="24" height="28" viewBox="0 0 24 28" fill="none"><circle cx="12" cy="8" r="6" fill="rgba(255,255,255,0.3)"/><path d="M0 26c0-7 5-10 12-10s12 3 12 10" fill="rgba(255,255,255,0.2)"/></svg></div>
+      <div class="chat-msg-bubble">Giấy tờ bắt buộc đã đủ. SHB đang kiểm tra hồ sơ; nếu cần bổ sung thêm, anh/chị sẽ được thông báo ngay tại đây.</div>
+    </div>
+  </div>
+  <div class="chat-quick-replies">
+    <button class="chat-qr-btn" onclick="sendQuickReply(this)">Tôi cần bổ sung giấy tờ nào?</button>
+    <button class="chat-qr-btn" onclick="sendQuickReply(this)">Vì sao tệp của tôi chưa được chấp nhận?</button>
+    <button class="chat-qr-btn" onclick="sendQuickReply(this)">Sao kê lương cần bao nhiêu tháng?</button>
+    <button class="chat-qr-btn" onclick="sendQuickReply(this)">Sau khi bổ sung giấy tờ thì sao?</button>
+  </div>
+  <div class="chat-input-area">
+    <span style="font-size:16px;color:#F26522;flex-shrink:0;">✦</span>
+    <input class="chat-input" type="text" id="chat-text-input" placeholder="Nhập câu hỏi cho CREDIX Agent..." onkeydown="if(event.key==='Enter')sendMessage()">
+    <button class="chat-send-btn" onclick="sendMessage()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>
+  </div>
+</div>
+
+<!-- Floating bubble + avatar -->
+<div class="chatbot-wrap" id="chatbot-wrap">
+  <div class="chatbot-bubble" id="chatbot-bubble" onclick="openChat()">
+    <button class="cb-close" onclick="event.stopPropagation();document.getElementById('chatbot-wrap').style.display='none';">×</button>
+    <div class="cb-header">
+      <div class="cb-agent-name">
+        <div class="cb-avatar"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
+        CREDIX Agent
+      </div>
+      <span class="cb-time">vừa xong</span>
+    </div>
+    <div class="cb-text">Xin chào quý khách. Bất cứ khi nào cần hỗ trợ, hãy nhấn vào CREDIX Agent ạ!</div>
+  </div>
+  <div class="cb-photo-wrap" onclick="openChat()">
+    <div class="cb-photo-svg"><svg width="44" height="48" viewBox="0 0 44 48" fill="none"><circle cx="22" cy="14" r="10" fill="rgba(255,255,255,0.25)"/><path d="M2 46c0-11 9-18 20-18s20 7 20 18" fill="rgba(255,255,255,0.2)"/></svg></div>
+    <div class="cb-online"></div>
+    <div class="cb-photo-badge">C</div>
+  </div>
+</div>
+
+<script>
+// Avatar SVG reused
+const AVT = `<div class="chat-msg-avatar"><svg width="24" height="28" viewBox="0 0 24 28" fill="none"><circle cx="12" cy="8" r="6" fill="rgba(255,255,255,0.3)"/><path d="M0 26c0-7 5-10 12-10s12 3 12 10" fill="rgba(255,255,255,0.2)"/></svg></div>`;
+
+function openChat(){document.getElementById('chatbot-wrap').style.display='none';document.getElementById('chat-window').classList.add('open');}
+function closeChat(){document.getElementById('chat-window').classList.remove('open');document.getElementById('chatbot-wrap').style.display='flex';}
+
+// Smart replies map
+const SMART_REPLIES = {
+  'Tôi cần bổ sung giấy tờ nào?': {
+    thinking: 'Đang suy nghĩ',
+    checking: 'Đang kiểm tra hồ sơ…',
+    html: `Hồ sơ hiện còn 2 giấy tờ cần anh/chị bổ sung hoặc tải lại. Giấy tờ cần ưu tiên xử lý là <strong>Sao kê lương 6 tháng</strong>. Anh/chị vui lòng gửi bản rõ nét, đủ trang và đúng nội dung để SHB kiểm tra tiếp.
+    <div style="margin-top:10px;padding-top:10px;border-top:1px solid #F0F2F8;">
+      <div style="font-size:12px;font-weight:700;color:#1A1A2E;margin-bottom:6px;">Thông tin liên quan</div>
+      <div style="font-size:12px;color:#555;display:flex;align-items:flex-start;gap:6px;margin-bottom:5px;">
+        <span style="flex-shrink:0;">1.</span>
+        <span>📄 Giấy tờ cần bổ sung hoặc tải lại</span>
+      </div>
+      <div style="font-size:12px;color:#555;display:flex;align-items:flex-start;gap:6px;">
+        <span style="flex-shrink:0;">2.</span>
+        <span>📄 APP-2026-1003 · Sao kê lương 6 tháng</span>
+      </div>
+    </div>`
+  },
+  'Vì sao tệp của tôi chưa được chấp nhận?': {
+    thinking: 'Đang suy nghĩ',
+    checking: 'Đang kiểm tra tệp…',
+    html: `Tệp có thể bị từ chối vì một trong các lý do sau: ảnh bị mờ hoặc thiếu trang, sai loại tệp (chỉ chấp nhận PDF/JPG/PNG), hoặc nội dung không khớp với thông tin hồ sơ. Anh/chị vui lòng chụp lại rõ nét, đủ trang, đúng mặt giấy tờ.
+    <div style="margin-top:10px;padding-top:10px;border-top:1px solid #F0F2F8;">
+      <div style="font-size:12px;font-weight:700;color:#1A1A2E;margin-bottom:6px;">Thông tin liên quan</div>
+      <div style="font-size:12px;color:#555;display:flex;align-items:flex-start;gap:6px;">
+        <span style="flex-shrink:0;">1.</span>
+        <span>📄 Hướng dẫn chụp giấy tờ chuẩn OCR</span>
+      </div>
+    </div>`
+  },
+  'Sao kê lương cần bao nhiêu tháng?': {
+    thinking: 'Đang suy nghĩ',
+    checking: 'Đang tra cứu chính sách…',
+    html: `Theo sản phẩm <strong>Vay mua nhà dự án liên kết</strong>, anh/chị cần cung cấp sao kê lương <strong>6 tháng gần nhất</strong> liên tục, có đóng dấu ngân hàng hoặc xác nhận điện tử.
+    <div style="margin-top:10px;padding-top:10px;border-top:1px solid #F0F2F8;">
+      <div style="font-size:12px;font-weight:700;color:#1A1A2E;margin-bottom:6px;">Thông tin liên quan</div>
+      <div style="font-size:12px;color:#555;display:flex;align-items:flex-start;gap:6px;">
+        <span style="flex-shrink:0;">1.</span>
+        <span>📄 Chính sách sản phẩm · Vay mua nhà dự án</span>
+      </div>
+    </div>`
+  },
+  'Sau khi bổ sung giấy tờ thì sao?': {
+    thinking: 'Đang suy nghĩ',
+    checking: 'Đang kiểm tra tiến độ…',
+    html: `Sau khi anh/chị tải lên giấy tờ, hệ thống sẽ tự động OCR và đối chiếu trong vài phút. Nếu hợp lệ, hồ sơ chuyển sang bước <strong>SHB kiểm tra</strong> và anh/chị sẽ nhận thông báo ngay tại đây. Nếu cần chỉnh sửa thêm, CREDIX Agent sẽ hướng dẫn bước tiếp theo.
+    <div style="margin-top:10px;padding-top:10px;border-top:1px solid #F0F2F8;">
+      <div style="font-size:12px;font-weight:700;color:#1A1A2E;margin-bottom:6px;">Thông tin liên quan</div>
+      <div style="font-size:12px;color:#555;display:flex;align-items:flex-start;gap:6px;">
+        <span style="flex-shrink:0;">1.</span>
+        <span>📄 Quy trình xử lý hồ sơ · Các bước tiếp theo</span>
+      </div>
+    </div>`
+  }
+};
+
+function sendQuickReply(btn) {
+  const text = btn.textContent.trim();
+  appendUserMsg(text);
+  const reply = SMART_REPLIES[text];
+  if (reply) {
+    showThinkingThenReply(reply);
+  } else {
+    showThinkingThenReply({
+      thinking: 'Đang suy nghĩ',
+      checking: 'Đang xử lý…',
+      html: 'Cảm ơn câu hỏi của anh/chị! CREDIX Agent đang xử lý và sẽ phản hồi ngay.'
+    });
+  }
+}
+
+function sendMessage() {
+  const input = document.getElementById('chat-text-input');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  appendUserMsg(text);
+  const reply = SMART_REPLIES[text];
+  if (reply) {
+    showThinkingThenReply(reply);
+  } else {
+    showThinkingThenReply({
+      thinking: 'Đang suy nghĩ',
+      checking: 'Đang xử lý…',
+      html: 'Mình đã nhận được câu hỏi. CREDIX Agent sẽ phản hồi trong giây lát ạ!'
+    });
+  }
+}
+
+function showThinkingThenReply(reply) {
+  const m = document.getElementById('chat-messages');
+  // Step 1: "Đang suy nghĩ"
+  const t1 = document.createElement('div');
+  t1.className = 'chat-msg';
+  t1.id = 'thinking-bubble';
+  t1.innerHTML = `${AVT}<div class="chat-msg-bubble" style="background:#F4F6FA;color:#888;display:flex;align-items:center;gap:8px;padding:10px 14px;">
+    <span id="thinking-label" style="font-size:13px;">${reply.thinking}</span>
+    <span class="thinking-dots"><span>.</span><span>.</span><span>.</span></span>
+  </div>`;
+  m.appendChild(t1); m.scrollTop = m.scrollHeight;
+
+  // Step 2: "Đang kiểm tra" after 1s
+  setTimeout(() => {
+    const label = document.getElementById('thinking-label');
+    if (label) label.textContent = reply.checking;
+    m.scrollTop = m.scrollHeight;
+  }, 1100);
+
+  // Step 3: Show real reply after 2.4s
+  setTimeout(() => {
+    const old = document.getElementById('thinking-bubble');
+    if (old) old.remove();
+    appendAgentRichMsg(reply.html);
+  }, 2400);
+}
+
+function appendUserMsg(t) {
+  const m = document.getElementById('chat-messages');
+  const d = document.createElement('div');
+  d.style.cssText = 'display:flex;justify-content:flex-end;align-items:flex-end;gap:8px;';
+  d.innerHTML = `
+    <div style="background:#F26522;color:#fff;border-radius:16px 4px 16px 16px;padding:10px 14px;font-size:13.5px;line-height:1.5;max-width:220px;font-family:'Be Vietnam Pro',sans-serif;">${t}</div>
+    <div style="width:30px;height:30px;border-radius:50%;background:#2B4D9B;color:#fff;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;">B</div>`;
+  m.appendChild(d); m.scrollTop = m.scrollHeight;
+}
+
+function appendAgentRichMsg(html) {
+  const m = document.getElementById('chat-messages');
+  const d = document.createElement('div');
+  d.className = 'chat-msg';
+  d.style.animation = 'fadeInUp 0.3s ease both';
+  d.innerHTML = `${AVT}<div class="chat-msg-bubble" style="animation:fadeInUp 0.3s ease both;">${html}</div>`;
+  m.appendChild(d); m.scrollTop = m.scrollHeight;
+}
+
+// Inject keyframes + thinking dots animation
+const style = document.createElement('style');
+style.textContent = `
+  @keyframes fadeInUp { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+  .thinking-dots span { animation: blink 1.2s infinite; font-size:18px; line-height:1; }
+  .thinking-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .thinking-dots span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes blink { 0%,80%,100% { opacity:0.2; } 40% { opacity:1; } }
+`;
+document.head.appendChild(style);
+</script>
+
 </body>
 </html>
