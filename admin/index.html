@@ -1,1 +1,462 @@
-A
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SHB Finance — Đăng nhập</title>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --orange:#F26522;--dark-blue:#0F1B3D;--mid-blue:#1A2D5A;
+  --green:#27AE60;--text:#1A1A2E;--muted:#888;--border:#E8ECF4;
+}
+body{font-family:'Be Vietnam Pro',sans-serif;min-height:100vh;display:flex;}
+
+/* ===== LEFT PANEL ===== */
+.left{
+  width:52%;flex-shrink:0;
+  background:linear-gradient(160deg,#0F1B3D 0%,#1A2D5A 35%,#0D2144 65%,#1C1008 100%);
+  position:relative;overflow:hidden;
+  display:flex;flex-direction:column;justify-content:space-between;
+  padding:36px 44px 32px;
+}
+
+/* Grid pattern overlay */
+.left::before{
+  content:'';position:absolute;inset:0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.03) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,0.03) 1px,transparent 1px);
+  background-size:40px 40px;
+  pointer-events:none;
+}
+
+/* Glow blobs */
+.blob-orange{
+  position:absolute;bottom:-80px;left:-60px;
+  width:320px;height:320px;border-radius:50%;
+  background:radial-gradient(circle,rgba(242,101,34,0.22),transparent 70%);
+  pointer-events:none;
+}
+.blob-blue{
+  position:absolute;top:80px;right:-80px;
+  width:260px;height:260px;border-radius:50%;
+  background:radial-gradient(circle,rgba(42,90,180,0.18),transparent 70%);
+  pointer-events:none;
+}
+
+.left-content{position:relative;z-index:1;flex:1;display:flex;flex-direction:column;}
+
+/* Logo */
+.logo-wrap{
+  display:inline-flex;align-items:center;gap:12px;
+  background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);
+  border-radius:10px;padding:10px 16px;margin-bottom:20px;width:fit-content;
+}
+.logo-s{
+  background:var(--orange);color:#fff;font-weight:900;font-size:18px;
+  width:34px;height:34px;border-radius:7px;
+  display:flex;align-items:center;justify-content:center;
+}
+.logo-shb{font-size:22px;font-weight:900;color:#fff;letter-spacing:-0.5px;}
+.logo-shb-sub{font-size:9px;color:rgba(255,255,255,0.5);line-height:1.2;margin-top:1px;}
+.logo-platform{font-size:13px;font-weight:600;color:rgba(255,255,255,0.55);}
+
+/* Live badge */
+.live-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  background:rgba(39,174,96,0.15);border:1px solid rgba(39,174,96,0.35);
+  border-radius:999px;padding:5px 12px;
+  font-size:11px;font-weight:600;color:#6EE7B7;
+  margin-bottom:32px;width:fit-content;
+}
+.live-dot{width:7px;height:7px;background:#27AE60;border-radius:50%;animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.5;transform:scale(1.3);}}
+
+/* Hero text */
+.hero-text{
+  font-size:clamp(32px,3.2vw,46px);font-weight:900;
+  line-height:1.12;letter-spacing:-1px;color:#fff;
+  margin-bottom:22px;
+}
+.hero-text .accent{color:var(--orange);}
+
+.hero-desc{
+  font-size:14.5px;line-height:1.7;color:rgba(255,255,255,0.6);
+  max-width:420px;margin-bottom:32px;
+}
+.hero-desc strong{color:rgba(255,255,255,0.85);font-weight:600;}
+
+/* Stats row */
+.stats-row{display:flex;gap:10px;margin-bottom:28px;}
+.stat-card{
+  background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.1);
+  border-radius:10px;padding:14px 18px;flex:1;
+}
+.stat-icon{font-size:14px;margin-bottom:6px;opacity:0.7;}
+.stat-value{font-size:22px;font-weight:900;color:#fff;letter-spacing:-0.5px;margin-bottom:2px;}
+.stat-value .up{color:#6EE7B7;}
+.stat-value .pct{color:var(--orange);}
+.stat-label{font-size:11px;color:rgba(255,255,255,0.45);}
+
+/* AI Activity feed */
+.activity-feed{
+  background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);
+  border-radius:12px;padding:14px 16px;
+}
+.feed-header{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:12px;
+}
+.feed-title{
+  font-size:12px;font-weight:700;color:rgba(255,255,255,0.7);
+  display:flex;align-items:center;gap:6px;
+}
+.feed-live{font-size:10px;font-weight:700;color:#6EE7B7;letter-spacing:0.5px;}
+.feed-items{display:flex;flex-direction:column;gap:7px;}
+.feed-item{
+  display:flex;align-items:flex-start;gap:10px;font-size:12px;
+  border-bottom:1px solid rgba(255,255,255,0.06);padding-bottom:7px;
+}
+.feed-item:last-child{border-bottom:none;padding-bottom:0;}
+.feed-tag{
+  font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;
+  white-space:nowrap;flex-shrink:0;margin-top:1px;
+}
+.ft-dispatch{background:rgba(242,101,34,0.2);color:#FDA07A;}
+.ft-alert{background:rgba(239,68,68,0.2);color:#FCA5A5;}
+.ft-approve{background:rgba(39,174,96,0.2);color:#6EE7B7;}
+.ft-risk{background:rgba(139,92,246,0.2);color:#C4B5FD;}
+.ft-doc{background:rgba(59,130,246,0.2);color:#93C5FD;}
+.feed-msg{color:rgba(255,255,255,0.6);line-height:1.4;flex:1;}
+
+/* Footer */
+.left-footer{
+  position:relative;z-index:1;
+  display:flex;align-items:center;justify-content:space-between;
+  margin-top:20px;
+}
+.left-footer-certs{display:flex;align-items:center;gap:16px;}
+.cert-item{display:flex;align-items:center;gap:5px;font-size:11px;color:rgba(255,255,255,0.35);}
+.left-footer-copy{font-size:11px;color:rgba(255,255,255,0.25);}
+
+/* ===== RIGHT PANEL ===== */
+.right{
+  flex:1;background:#fff;
+  display:flex;align-items:center;justify-content:center;
+  padding:40px;
+}
+.login-box{width:100%;max-width:420px;}
+
+.login-title{font-size:28px;font-weight:900;letter-spacing:-0.5px;color:var(--text);margin-bottom:6px;}
+.login-desc{font-size:13px;color:var(--muted);margin-bottom:24px;line-height:1.5;}
+
+/* Session pill */
+.session-pill{
+  display:flex;align-items:center;justify-content:space-between;
+  background:#FFF8F3;border:1.5px solid #FDDEC8;border-radius:10px;
+  padding:10px 14px;margin-bottom:20px;gap:10px;
+}
+.session-av{
+  width:34px;height:34px;border-radius:50%;
+  background:linear-gradient(135deg,#1A2B5F,#2B4D9B);
+  color:#fff;font-size:12px;font-weight:800;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.session-info{flex:1;}
+.session-name{font-size:12px;font-weight:700;color:var(--text);}
+.session-email{font-size:11px;color:var(--muted);}
+.session-actions{display:flex;gap:6px;}
+.btn-vaoadmin{
+  padding:6px 12px;border-radius:7px;background:var(--orange);color:#fff;
+  border:none;font-family:'Be Vietnam Pro',sans-serif;font-size:11px;font-weight:700;cursor:pointer;
+  transition:background 0.2s;
+}
+.btn-vaoadmin:hover{background:#d9541a;}
+.btn-dangxuat{
+  padding:6px 12px;border-radius:7px;background:#fff;color:var(--text);
+  border:1.5px solid var(--border);font-family:'Be Vietnam Pro',sans-serif;font-size:11px;font-weight:600;cursor:pointer;
+}
+
+/* Form */
+.form-group{margin-bottom:16px;}
+.form-label{
+  display:block;font-size:10px;font-weight:700;
+  text-transform:uppercase;letter-spacing:0.6px;color:var(--muted);margin-bottom:6px;
+}
+.form-label-row{display:flex;align-items:center;justify-content:space-between;}
+.forgot-link{font-size:12px;font-weight:600;color:var(--orange);cursor:pointer;text-decoration:none;}
+.form-input{
+  width:100%;height:46px;border-radius:9px;border:1.5px solid var(--border);
+  padding:0 14px;font-family:'Be Vietnam Pro',sans-serif;font-size:14px;color:var(--text);
+  background:#fff;outline:none;transition:border-color 0.2s;
+}
+.form-input:focus{border-color:var(--orange);box-shadow:0 0 0 3px rgba(242,101,34,0.08);}
+.pass-wrap{position:relative;}
+.pass-wrap .form-input{padding-right:44px;}
+.pass-eye{
+  position:absolute;right:14px;top:50%;transform:translateY(-50%);
+  background:none;border:none;cursor:pointer;color:var(--muted);
+  display:flex;align-items:center;
+}
+
+/* Remember me */
+.remember-row{display:flex;align-items:center;gap:8px;margin-bottom:20px;}
+.cb-custom{
+  width:17px;height:17px;border-radius:4px;
+  background:var(--orange);border:none;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.remember-label{font-size:13px;color:var(--text);}
+
+/* Login button */
+.btn-login{
+  width:100%;height:50px;border-radius:10px;
+  background:var(--orange);color:#fff;border:none;
+  font-family:'Be Vietnam Pro',sans-serif;font-size:15px;font-weight:800;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;
+  transition:background 0.2s,transform 0.15s;margin-bottom:14px;
+}
+.btn-login:hover{background:#d9541a;transform:translateY(-1px);}
+
+/* SSO buttons */
+.sso-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:24px;}
+.btn-sso{
+  height:42px;border-radius:9px;border:1.5px solid var(--border);background:#fff;
+  font-family:'Be Vietnam Pro',sans-serif;font-size:12px;font-weight:600;color:var(--text);
+  cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;
+  transition:border-color 0.2s,background 0.2s;
+}
+.btn-sso:hover{border-color:var(--orange);background:#FFF8F3;}
+
+/* Footer */
+.login-footer{font-size:11.5px;color:var(--muted);line-height:1.7;}
+.login-footer a{color:var(--orange);text-decoration:none;font-weight:600;}
+.tls-bar{
+  display:flex;align-items:center;justify-content:flex-end;
+  margin-top:16px;font-size:11px;color:var(--muted);gap:5px;
+}
+</style>
+</head>
+<body>
+
+<!-- LEFT PANEL -->
+<div class="left">
+  <div class="blob-orange"></div>
+  <div class="blob-blue"></div>
+
+  <div class="left-content">
+    <!-- Logo -->
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:20px;">
+      <div class="logo-wrap">
+        <div class="logo-s">S</div>
+        <div>
+          <div style="display:flex;align-items:baseline;gap:4px;">
+            <span class="logo-shb">SHB</span>
+          </div>
+          <div class="logo-shb-sub">Ngân hàng Sài Gòn – Hà Nội</div>
+        </div>
+        <div style="width:1px;height:32px;background:rgba(255,255,255,0.15);margin:0 4px;"></div>
+        <span class="logo-platform">Banking Automation Platform</span>
+      </div>
+    </div>
+
+    <!-- Live badge -->
+    <div class="live-badge">
+      <span class="live-dot"></span>
+      Hệ thống đang hoạt động ổn định
+    </div>
+
+    <!-- Hero -->
+    <h1 class="hero-text">
+      Duyệt 1 hồ sơ vay<br>
+      chỉ trong <span class="accent">5 phút</span>,<br>
+      không cần rời màn hình.
+    </h1>
+
+    <p class="hero-desc">
+      SHB Finance gom thẩm định, kiểm tra rủi ro, pháp lý, và phê duyệt vào
+      <strong>một workspace duy nhất</strong> — Mai Copilot tự đọc hồ sơ, gợi ý quyết
+      định, và sẵn sàng giao việc khi bạn cần con người xem lại.
+    </p>
+
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-icon">⏱</div>
+        <div class="stat-value"><span class="up">↓ 78%</span></div>
+        <div class="stat-label">Thời gian xử lý</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">↗</div>
+        <div class="stat-value"><span class="up">+34%</span></div>
+        <div class="stat-label">Hồ sơ duyệt/ngày</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">⚡</div>
+        <div class="stat-value"><span class="pct">92%</span></div>
+        <div class="stat-label">Tự động hoá</div>
+      </div>
+    </div>
+
+    <!-- AI Activity Feed -->
+    <div class="activity-feed">
+      <div class="feed-header">
+        <div class="feed-title">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          Hoạt động AI Copilot
+        </div>
+        <span class="feed-live">LIVE</span>
+      </div>
+      <div class="feed-items">
+        <div class="feed-item">
+          <span class="feed-tag ft-dispatch">Điều phối</span>
+          <span class="feed-msg">Chuyển 2 hồ sơ cần kiểm tra thêm cho chuyên viên rủi ro</span>
+        </div>
+        <div class="feed-item">
+          <span class="feed-tag ft-alert">Cảnh báo</span>
+          <span class="feed-msg">Phát hiện trùng CCCD · gắn cờ APP-0998</span>
+        </div>
+        <div class="feed-item">
+          <span class="feed-tag ft-approve">Phê duyệt</span>
+          <span class="feed-msg">5 hồ sơ rủi ro thấp được duyệt tự động</span>
+        </div>
+        <div class="feed-item">
+          <span class="feed-tag ft-risk">Kiểm tra rủi ro</span>
+          <span class="feed-msg">Đánh giá APP-1024 · CIC bureau 712/850 · điểm rủi ro nội bộ 28/100</span>
+        </div>
+        <div class="feed-item">
+          <span class="feed-tag ft-doc">Đọc tài liệu</span>
+          <span class="feed-msg">Trích xuất xong sao kê 6 tháng — APP-1031</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Left footer -->
+  <div class="left-footer">
+    <div class="left-footer-certs">
+      <div class="cert-item">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        ISO 27001
+      </div>
+      <div class="cert-item">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+        SOC 2 Type II
+      </div>
+      <div class="cert-item">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+        SBV chuẩn
+      </div>
+    </div>
+    <div class="left-footer-copy">© 2026 SHB · v3.4.1</div>
+  </div>
+</div>
+
+<!-- RIGHT PANEL -->
+<div class="right">
+  <div class="login-box">
+    <div class="login-title">Đăng nhập</div>
+    <div class="login-desc">Nhập email công ty và mật khẩu để truy cập hệ thống vận hành tín dụng.</div>
+
+    <!-- Session pill -->
+    <div class="session-pill">
+      <div class="session-av">MA</div>
+      <div class="session-info">
+        <div class="session-name">Đang đăng nhập: Nguyễn Minh A…</div>
+        <div class="session-email">Administrator · anh.nm@shb.vn</div>
+      </div>
+      <div class="session-actions">
+        <button class="btn-vaoadmin" onclick="goAdmin()">Vào Admin</button>
+        <button class="btn-dangxuat">Đăng xuất</button>
+      </div>
+    </div>
+
+    <!-- Email field -->
+    <div class="form-group">
+      <label class="form-label">Email công ty</label>
+      <input type="email" class="form-input" id="email-input" value="anh.nm@shb.vn" placeholder="ten.nv@shb.vn">
+    </div>
+
+    <!-- Password field -->
+    <div class="form-group">
+      <div class="form-label-row">
+        <label class="form-label" style="margin-bottom:0;">Mật khẩu</label>
+        <a href="#" class="forgot-link" onclick="return false;">Quên mật khẩu?</a>
+      </div>
+      <div style="margin-top:6px;" class="pass-wrap">
+        <input type="password" class="form-input" id="pass-input" value="admin123">
+        <button class="pass-eye" onclick="togglePass()" id="eye-btn">
+          <svg id="eye-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Remember me -->
+    <div class="remember-row">
+      <div class="cb-custom">
+        <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2.5"><polyline points="2,6 5,9 10,3"/></svg>
+      </div>
+      <span class="remember-label">Ghi nhớ trên thiết bị này (8h)</span>
+    </div>
+
+    <!-- Login button -->
+    <button class="btn-login" onclick="goAdmin()">
+      Đăng nhập →
+    </button>
+
+    <!-- SSO -->
+    <div class="sso-row">
+      <button class="btn-sso">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+        SSO Azure AD
+      </button>
+      <button class="btn-sso">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        Yubikey / FIDO2
+      </button>
+    </div>
+
+    <!-- Footer text -->
+    <div class="login-footer">
+      Sự cố đăng nhập? Liên hệ <a href="#">IT Helpdesk · x1234</a><br>
+      Sử dụng SHB Finance đồng nghĩa bạn chấp nhận <a href="#">Chính sách bảo mật nội bộ</a> và <a href="#">Quy chế audit</a>.
+    </div>
+
+    <!-- TLS bar -->
+    <div class="tls-bar">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+      TLS 1.3 · FIDO2 tuỳ chọn
+    </div>
+  </div>
+</div>
+
+<script>
+function togglePass() {
+  const input = document.getElementById('pass-input');
+  const icon = document.getElementById('eye-icon');
+  if (input.type === 'password') {
+    input.type = 'text';
+    icon.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/>';
+  } else {
+    input.type = 'password';
+    icon.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+  }
+}
+
+function goAdmin() {
+  window.location.href = './shb_admin_dashboard.html';
+}
+
+// Animate feed items
+const items = document.querySelectorAll('.feed-item');
+let idx = 0;
+setInterval(() => {
+  items.forEach(i => i.style.opacity = '1');
+  items[idx].style.opacity = '0.4';
+  idx = (idx + 1) % items.length;
+}, 1800);
+</script>
+</body>
+</html>
