@@ -85,11 +85,10 @@ body{font-family:'Be Vietnam Pro',sans-serif;background:var(--bg);color:var(--te
 /* KPI row */
 .kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;}
 .kpi-card{background:var(--card);border:1.5px solid var(--border);border-radius:12px;padding:14px 16px;position:relative;overflow:hidden;}
-.kpi-card::after{content:'';position:absolute;top:0;right:0;width:60px;height:60px;border-radius:50%;opacity:0.06;}
-.kpi-card.blue::after{background:var(--mid-blue);}
-.kpi-card.orange::after{background:var(--orange);}
-.kpi-card.green::after{background:var(--green);}
-.kpi-card.yellow::after{background:var(--yellow);}
+.kpi-card.blue::after{display:none;}
+.kpi-card.orange::after{display:none;}
+.kpi-card.green::after{display:none;}
+.kpi-card.yellow::after{display:none;}
 .kpi-icon{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;margin-bottom:8px;}
 .kpi-card.blue .kpi-icon{background:#EFF6FF;}
 .kpi-card.orange .kpi-icon{background:#FFF0E6;}
@@ -374,7 +373,7 @@ svg.line-chart{width:100%;height:140px;}
     <!-- Status bar chart + full width -->
     <div class="full-col">
       <div class="dash-card">
-        <div class="card-title">Phều trạng thái hồ sơ</div>
+        <div class="card-title">Trạng thái hồ sơ</div>
         <div style="position:relative;">
           <div class="bar-chart-wrap" id="bar-chart">
             <!-- bars rendered by JS -->
@@ -446,22 +445,23 @@ svg.line-chart{width:100%;height:140px;}
 <script>
 // Bar chart
 const barData = [
-  { label:'Submitted', val:2, color:'#2B4D9B' },
-  { label:'AI Review', val:5, color:'#2B4D9B' },
-  { label:'Need Info', val:2, color:'#2B4D9B' },
-  { label:'HITL', val:3, color:'#2B4D9B' },
-  { label:'Credit', val:3, color:'#2B4D9B' },
-  { label:'Approved', val:4, color:'#2B4D9B' },
-  { label:'Rejected', val:4, color:'#2B4D9B' },
+  { label:'Submitted',  val:142, color:'#2B4D9B' },
+  { label:'AI Review',  val:87,  color:'#8B5CF6' },
+  { label:'Need Info',  val:34,  color:'#F59E0B' },
+  { label:'HITL',       val:56,  color:'#F26522' },
+  { label:'Credit',     val:63,  color:'#3B82F6' },
+  { label:'Approved',   val:198, color:'#059669' },
+  { label:'Rejected',   val:41,  color:'#DC2626' },
 ];
 const maxBar = Math.max(...barData.map(d=>d.val));
 const barWrap = document.getElementById('bar-chart');
 barData.forEach(d => {
   const col = document.createElement('div');
   col.className = 'bar-col';
-  const pct = (d.val / (maxBar + 1)) * 100;
+  const pct = (d.val / (maxBar + 10)) * 100;
   col.innerHTML = `
-    <div class="bar" style="height:${pct}%;background:${d.color};width:100%;"></div>
+    <div style="font-size:28px;font-weight:900;letter-spacing:-1px;color:${d.color};line-height:1;margin-bottom:3px;">${d.val}</div>
+    <div class="bar" style="height:${pct}%;background:${d.color};width:100%;opacity:0.85;"></div>
     <div class="bar-label">${d.label}</div>
   `;
   barWrap.appendChild(col);
